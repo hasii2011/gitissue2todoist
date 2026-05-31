@@ -1,0 +1,81 @@
+
+from logging import Logger
+from logging import getLogger
+
+from toga import Box
+from toga import ErrorDialog
+from toga import Label
+from toga import Selection
+from toga.style import Pack
+from toga.style.pack import COLUMN
+
+from gitissue2todoist.adapters.GithubAdapter import Slugs
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
+from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
+
+from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.adapters.GithubAdapter import GithubAdapter
+
+
+class RepositorySelector(Box):
+    """
+
+    """
+
+    def __init__(self):
+
+        self.logger: Logger = getLogger(__name__)
+        super().__init__(style=Pack(direction=COLUMN))
+
+        self._preferences: Preferences = Preferences()
+        self._githubAdapter: GithubAdapter = GithubAdapter(
+            userName=self._preferences.gitHubUserName,
+            authenticationToken=self._preferences.gitHubAPIToken
+        )
+
+        repositoryLabel: Label = Label(
+            'Repositories',
+            style=Pack(margin=(2, 5)),
+        )
+        self._repositorySelection: Selection = Selection()
+
+        self._repositorySelection.on_change = self._onSelectionChanged
+
+        self.add(repositoryLabel)
+        self.add(self._repositorySelection)
+
+    async def populateRepositories(self):
+        import asyncio
+
+        try:
+            # Run the synchronous GitHub query in a background thread to prevent UI freezing
+            repoNames: Slugs = await asyncio.to_thread(self._githubAdapter.getRepositoryNames)
+
+            self._repositorySelection.items = repoNames
+        except AdapterAuthenticationError:
+            await self._handleAuthenticationError()
+        except GitHubConnectionError:
+            await self._handleGitHubConnectionError()
+
+    def _onSelectionChanged(self, selection: Selection):
+        newSelection = selection.value
+        self.logger.info(f'{newSelection}')
+
+    async def _handleAuthenticationError(self):
+        # noinspection PyUnresolvedReferences
+        await self.window.dialog(
+            dialog=ErrorDialog(title='Error', message='GitHub authentication error')
+        )
+    #     # with DlgConfigure(self) as dlg:
+    #     #     if dlg.ShowModal() == OK:
+    #     #         githubToken: str = self._preferences.gitHubAPIToken
+    #     #         userName:    str = self._preferences.gitHubUserName
+    #     #         self._githubAdapter = GithubAdapter(userName=userName, authenticationToken=githubToken)
+    #     #
+    #     #         self._populateRepositories()  # I hate recursion
+
+    async def _handleGitHubConnectionError(self):
+        # noinspection PyUnresolvedReferences
+        await self.window.dialog(
+            dialog=ErrorDialog(title='Error', message='GitHub connection error. Try again later')
+        )
