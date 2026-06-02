@@ -15,7 +15,7 @@ from codeallybasic.SecureConversions import SecureConversions
 
 from gitissue2todoist.GitHubURLOption import GitHubURLOption
 
-from gitissue2todoist.general.Resources import Resources
+from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
 DEFAULT_APP_WIDTH:    int        = 1024
@@ -68,7 +68,7 @@ class Preferences(DynamicConfiguration, metaclass=SingletonV3):
     def __init__(self):
         self._logger: Logger = getLogger(__name__)
 
-        baseFileName: str = f'{Resources.CANONICAL_APPLICATION_NAME.lower()}.ini'
-        moduleName:   str = f'{Resources.CANONICAL_APPLICATION_NAME.lower()}'
+        baseFileName: str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}.ini'
+        moduleName:   str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}'
 
         super().__init__(baseFileName=baseFileName, moduleName=moduleName, sections=CONFIGURATION_SECTIONS)

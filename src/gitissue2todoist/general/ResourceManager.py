@@ -4,12 +4,15 @@ from logging import getLogger
 
 from os import sep as osSep
 
-from codeallybasic.ResourceManager import ResourceManager
+from pathlib import Path
+
+from importlib.resources import as_file
+from importlib.resources import files
 
 from gitissue2todoist.general.ResourceTextType import ResourceTextType
 
 
-class Resources:
+class ResourceManager:
     """
     Static class
     """
@@ -32,18 +35,37 @@ class Resources:
 
         Returns:  A long string
         """
-        textFileName: str = Resources.retrieveResourcePath(textType.value)
+        textFileName: Path = ResourceManager.retrieveResourcePath(textType.value)
         cls.clsLogger.debug(f'text filename: {textFileName}')
 
-        objRead = open(textFileName, 'r')
-        requestedText: str = objRead.read()
-        objRead.close()
+        with open(textFileName, 'r') as fd:
+
+            # objRead = open(textFileName, 'r')
+            # requestedText: str = objRead.read()
+            # objRead.close()
+            requestedText: str = fd.read()
 
         return requestedText
 
     @classmethod
-    def retrieveResourcePath(cls, bareFileName: str) -> str:
+    def retrieveResourcePath(cls, bareFileName: str) -> Path:
+        """
+        Use this local code until codeallybasic is updated;  I will update to return Path
+        Args:
+            bareFileName:
 
+        Returns:
+
+        """
+        # noinspection SpellCheckingInspection
+        """
         fqFileName: str = ResourceManager.retrieveResourcePath(bareFileName=bareFileName,
                                                                packageName=Resources.RESOURCES_PACKAGE_NAME)
-        return fqFileName
+        """
+
+        # Obtains a real filesystem path (extracting from packages/zips if necessary)
+        with as_file(files(ResourceManager.RESOURCES_PACKAGE_NAME) / bareFileName) as filePath:
+            # filePath is now a standard pathlib.Path object representing a real file on disk
+            pass
+
+        return filePath

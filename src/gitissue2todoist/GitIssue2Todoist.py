@@ -1,12 +1,11 @@
-
 from typing import cast
 
 import logging.config
 
 from json import load as jsonLoad
 
-from gitissue2todoist.RepositorySelector import RepositorySelector
-from gitissue2todoist.general.Resources import Resources
+from pathlib import Path
+
 from toga import App
 from toga import Box
 from toga import MainWindow
@@ -14,10 +13,12 @@ from toga import MainWindow
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.RepositorySelector import RepositorySelector
+from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.Preferences import Preferences
 
 
-class gitissue2todoist(App):
+class GitIssue2Todoist(App):
     JSON_LOGGING_CONFIG_FILENAME: str = "loggingConfiguration.json"
 
     def __init__(self):
@@ -53,7 +54,7 @@ class gitissue2todoist(App):
 
     def _setupSystemLogging(self):
 
-        configFilePath: str = Resources.retrieveResourcePath(gitissue2todoist.JSON_LOGGING_CONFIG_FILENAME)
+        configFilePath: Path = ResourceManager.retrieveResourcePath(GitIssue2Todoist.JSON_LOGGING_CONFIG_FILENAME)
 
         with open(configFilePath, 'r') as loggingConfigurationFile:
             configurationDictionary = jsonLoad(loggingConfigurationFile)
@@ -63,4 +64,4 @@ class gitissue2todoist(App):
         logging.logThreads   = False
 
 def main():
-    return gitissue2todoist()
+    return GitIssue2Todoist()

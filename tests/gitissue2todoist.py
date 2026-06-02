@@ -1,34 +1,31 @@
+
 import os
-import sys
-import tempfile
+
 from pathlib import Path
 
-import pytest
+from unittest import TestLoader
+from unittest import TestSuite
+from unittest import TextTestRunner
 
 
 def run_tests():
+    # Change to the project root directory
     project_path = Path(__file__).parent.parent
     os.chdir(project_path)
 
-    # Determine any args to pass to pytest. If there aren't any,
-    # default to running the whole test suite.
-    args = sys.argv[1:]
-    if len(args) == 0:
-        args = ["tests"]
+    # Discover and run all unittest tests in the 'tests' directory
+    loader: TestLoader = TestLoader()
+    suite:   TestSuite = loader.discover(start_dir='tests', pattern='Test*.py', top_level_dir='')
 
-    returncode = pytest.main(
-        [
-            # Turn up verbosity
-            "-vv",
-            # Disable color
-            "--color=no",
-            # Overwrite the cache directory to somewhere writable
-            "-o",
-            f"cache_dir={tempfile.gettempdir()}/.pytest_cache",
-        ] + args
-    )
+    # Run the tests with verbosity enabled
+    runner: TextTestRunner = TextTestRunner(verbosity=2)
+    result = runner.run(suite)
 
-    print(f">>>>>>>>>> EXIT {returncode} <<<<<<<<<<")
+    # Return code is 0 if tests passed, 1 if there were failures/errors
+    returnCode = 0 if result.wasSuccessful() else 1
+
+    # Briefcase monitors standard output for this exact string to determine success
+    print(f">>>>>>>>>> EXIT {returnCode} <<<<<<<<<<")
 
 
 if __name__ == "__main__":
