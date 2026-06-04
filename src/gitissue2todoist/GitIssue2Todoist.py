@@ -16,7 +16,12 @@ from toga.style.pack import COLUMN
 from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.general.ResourceManager import ResourceManager
+
 from gitissue2todoist.Preferences import Preferences
+
+from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
+from gitissue2todoist.pubsubengine.PubSubEngine import PubSubEngine
+
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
 
@@ -28,7 +33,9 @@ class GitIssue2Todoist(App):
         super().__init__()
         self._setupSystemLogging()
 
-        self._preferences: Preferences = Preferences()
+        self._preferences:  Preferences   = Preferences()
+        self._pubSubEngine: IPubSubEngine = PubSubEngine()
+
         self._repositorySelector:   RepositorySelector   = cast(RepositorySelector, None)
         self._milestoneGithubPanel: MilestoneGitHubPanel = cast(MilestoneGitHubPanel, None)
 
@@ -43,10 +50,11 @@ class GitIssue2Todoist(App):
 
         mainContainer: Box = Box(style=Pack(direction=COLUMN))
 
-        self._repositorySelector = RepositorySelector()
+        self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
+
         if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
                 self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
-            self._milestoneGithubPanel = MilestoneGitHubPanel()
+            self._milestoneGithubPanel = MilestoneGitHubPanel(pubSubEngine=self._pubSubEngine)
         else:
             assert False, 'Not yet implemented'
 

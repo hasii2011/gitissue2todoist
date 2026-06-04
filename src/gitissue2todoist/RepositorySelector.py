@@ -6,16 +6,20 @@ from toga import Box
 from toga import ErrorDialog
 from toga import Label
 from toga import Selection
+
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.adapters.GithubAdapter import Slug
 from gitissue2todoist.adapters.GithubAdapter import Slugs
+from gitissue2todoist.adapters.GithubAdapter import GithubAdapter
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.Preferences import Preferences
-from gitissue2todoist.adapters.GithubAdapter import GithubAdapter
+
+from gitissue2todoist.pubsubengine.MessageType import MessageType
+from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 NO_SELECTION_INDICATOR: str = '--- Select Repository ---'
 NO_SELECTION_SLUG:     Slug = Slug(NO_SELECTION_INDICATOR)
@@ -24,12 +28,14 @@ class RepositorySelector(Box):
     """
 
     """
-    def __init__(self):
+    def __init__(self, pubSubEngine: IPubSubEngine):
 
         self.logger: Logger = getLogger(__name__)
+
         super().__init__(style=Pack(direction=COLUMN))
 
-        self._preferences: Preferences = Preferences()
+        self._pubSubEngine:  IPubSubEngine = pubSubEngine
+        self._preferences:   Preferences   = Preferences()
         self._githubAdapter: GithubAdapter = GithubAdapter(
             userName=self._preferences.gitHubUserName,
             authenticationToken=self._preferences.gitHubAPIToken
@@ -64,12 +70,13 @@ class RepositorySelector(Box):
 
         # I know it is a string
         # noinspection PyTypeChecker
-        newSelection: str  = selection.value            # type: ignore
+        repositoryName: str  = selection.value            # type: ignore
 
-        if newSelection == NO_SELECTION_INDICATOR:
+        if repositoryName == NO_SELECTION_INDICATOR:
             pass
         else:
-            self.logger.info(f'{newSelection}')
+            self.logger.info(f'{repositoryName=}')
+            self._pubSubEngine.sendMessage(messageType=MessageType.LOAD_MILESTONES, repositoryName=repositoryName)
             pass    # send message to listener
 
 
