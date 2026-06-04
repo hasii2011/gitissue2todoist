@@ -9,6 +9,7 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.adapters.GithubAdapter import Slug
 from gitissue2todoist.adapters.GithubAdapter import Slugs
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
@@ -16,12 +17,13 @@ from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenti
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.GithubAdapter import GithubAdapter
 
+NO_SELECTION_INDICATOR: str = '--- Select Repository ---'
+NO_SELECTION_SLUG:     Slug = Slug(NO_SELECTION_INDICATOR)
 
 class RepositorySelector(Box):
     """
 
     """
-
     def __init__(self):
 
         self.logger: Logger = getLogger(__name__)
@@ -50,6 +52,7 @@ class RepositorySelector(Box):
         try:
             # Run the synchronous GitHub query in a background thread to prevent UI freezing
             repoNames: Slugs = await asyncio.to_thread(self._githubAdapter.getRepositoryNames)
+            repoNames.insert(0, NO_SELECTION_SLUG)
 
             self._repositorySelection.items = repoNames
         except AdapterAuthenticationError:
@@ -58,10 +61,23 @@ class RepositorySelector(Box):
             await self._handleGitHubConnectionError()
 
     def _onSelectionChanged(self, selection: Selection):
-        newSelection = selection.value
-        self.logger.info(f'{newSelection}')
+
+        # I know it is a string
+        # noinspection PyTypeChecker
+        newSelection: str  = selection.value            # type: ignore
+
+        if newSelection == NO_SELECTION_INDICATOR:
+            pass
+        else:
+            self.logger.info(f'{newSelection}')
+            pass    # send message to listener
+
 
     async def _handleAuthenticationError(self):
+        #
+        # Tell mypy to stfu
+        #
+        assert self.window is not None
         # noinspection PyUnresolvedReferences
         await self.window.dialog(
             dialog=ErrorDialog(title='Error', message='GitHub authentication error')
@@ -75,6 +91,10 @@ class RepositorySelector(Box):
     #     #         self._populateRepositories()  # I hate recursion
 
     async def _handleGitHubConnectionError(self):
+        #
+        # Tell mypy to stfu
+        #
+        assert self.window is not None
         # noinspection PyUnresolvedReferences
         await self.window.dialog(
             dialog=ErrorDialog(title='Error', message='GitHub connection error. Try again later')

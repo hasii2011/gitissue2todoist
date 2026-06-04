@@ -1,7 +1,10 @@
+from pathlib import Path
 from unittest import TestSuite
 from unittest import main as unitTestMain
 
 from codeallybasic.UnitTestBase import UnitTestBase
+
+from gitissue2todoist.general.ResourceManager import ResourceManager
 
 
 # import the class you want to test here
@@ -15,6 +18,8 @@ class TestResourceManager(UnitTestBase):
         Generated: 01 June 2026
     """
 
+    TEST_JSON_LOGGING_CONFIG_FILENAME: str = "testLoggingConfiguration.json"
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -25,11 +30,13 @@ class TestResourceManager(UnitTestBase):
     def tearDown(self):
         super().tearDown()
 
-    def testName1(self):
-        pass
+    def testRetrieveResourcePath(self):
 
-    def testName2(self):
-        """Another test"""
+        actualPath: Path = ResourceManager.retrieveResourcePath(TestResourceManager.TEST_JSON_LOGGING_CONFIG_FILENAME)
+
+        self.assertIsNotNone(actualPath, 'Need something back')
+
+    def testRetrieveResourceText(self):
         pass
 
 

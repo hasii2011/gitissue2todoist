@@ -1,0 +1,16 @@
+# This file is intended for setting up an IDE environment (like PyCharm or VSCode).
+# Briefcase manages its own dependencies for building the app, but IDEs need 
+# dependencies installed in the local virtual environment to provide autocomplete and avoid "missing module" errors.
+
+# Base GUI framework (this will automatically install toga-cocoa on Mac, toga-gtk on Linux, etc.)
+toga~=0.5.0
+
+# Project specific dependencies
+PyGithub>=2.8.1
+codeallybasic>=1.30.1
+
+# for mypy
+types-cffi==2.0.0.20260518
+
+# Testing
+pytest

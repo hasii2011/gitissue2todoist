@@ -13,9 +13,11 @@ from toga import MainWindow
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
 
 class GitIssue2Todoist(App):
@@ -27,7 +29,8 @@ class GitIssue2Todoist(App):
         self._setupSystemLogging()
 
         self._preferences: Preferences = Preferences()
-        self._repositorySelector: RepositorySelector = cast(RepositorySelector, None)
+        self._repositorySelector:   RepositorySelector   = cast(RepositorySelector, None)
+        self._milestoneGithubPanel: MilestoneGitHubPanel = cast(MilestoneGitHubPanel, None)
 
     def startup(self):
         """
@@ -40,14 +43,29 @@ class GitIssue2Todoist(App):
 
         mainContainer: Box = Box(style=Pack(direction=COLUMN))
 
-        self._repositorySelector: RepositorySelector = RepositorySelector()
+        self._repositorySelector = RepositorySelector()
+        if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
+                self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
+            self._milestoneGithubPanel = MilestoneGitHubPanel()
+        else:
+            assert False, 'Not yet implemented'
 
         mainContainer.add(self._repositorySelector)
+        mainContainer.add(self._milestoneGithubPanel)
         self.main_window = MainWindow(title=self.formal_name)
+        assert self.main_window is not None
+        #
+        # Tell mypy to stfu
+        #
+        assert not isinstance(self.main_window, str)
         self.main_window.content = mainContainer
 
         # noinspection PyUnresolvedReferences
         self.main_window.show()
+
+    # noinspection PyUnusedLocal
+    def _actionExit(self, widget, **kwargs) -> None:
+        self.exit()
 
     async def on_running(self):
         await self._repositorySelector.populateRepositories()
