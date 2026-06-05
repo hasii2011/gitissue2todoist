@@ -8,10 +8,14 @@ from os import environ as osEnvironment
 
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 
+TEST_REPO_NAME:       Slug = Slug('hasii2011/testrepository')
+TEST_MILESTONE_TITLE: str  = 'Milestone 2'
+EXPECTED_ISSUE_COUNT: int =3
 
 class TestHttpxGitHubAdapter(UnitTestBase):
     """
@@ -55,9 +59,21 @@ class TestHttpxGitHubAdapter(UnitTestBase):
         else:
             adapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._gitHubToken)
 
-            mileStoneTitles: MilestoneTitles = adapter.getMileStoneTitles(repoName=Slug('hasii2011/testrepository'))
+            mileStoneTitles: MilestoneTitles = adapter.getMileStoneTitles(repoName=TEST_REPO_NAME)
 
             self.assertTrue(len(mileStoneTitles) != 0, 'We should find some milestones')
+
+    def testGetAbbreviatedIssues(self):
+        if self._gitHubToken == '':
+            self.logger.warning(f'Cannot run test either token or user name not set in environment')
+        else:
+            adapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._gitHubToken)
+
+            abbreviatedGitIssues: AbbreviatedGitIssues = adapter.getAbbreviatedIssues(repoName=TEST_REPO_NAME, milestoneTitle=TEST_MILESTONE_TITLE)
+
+            actualIssueCount: int = len(abbreviatedGitIssues)
+
+            self.assertEqual(EXPECTED_ISSUE_COUNT, actualIssueCount, 'Mismatch on test repo, milestone issues')
 
 
 def suite() -> TestSuite:
