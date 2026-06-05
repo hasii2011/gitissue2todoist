@@ -1,14 +1,8 @@
 
-from typing import Callable
-from typing import List
-from typing import NewType
 from typing import Optional
 
 from logging import Logger
 from logging import getLogger
-
-from dataclasses import dataclass
-from dataclasses import field
 
 from github import Github
 from github.Auth import Token
@@ -31,37 +25,22 @@ from github.PaginatedList import PaginatedList
 from cffi import api
 
 
-from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
-from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.GitHubGeneralError import GitHubGeneralError
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
+from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
 
-MilestoneTitles = NewType('MilestoneTitles', List[str])
-IssueOwner      = NewType('IssueOwner',      str)
-
-
-def createLabelsFactory() -> List[str]:
-    return []
-
-
-@dataclass
-class AbbreviatedGitIssue:
-
-    slug:         str = ''
-    issueTitle:   str = ''
-    issueHTMLURL: str = ''
-    body:         str = ''
-    labels:       List[str] = field(default_factory=createLabelsFactory)
+from gitissue2todoist.adapters.IGitHubAdapter import IGitHubAdapter
+from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IGitHubAdapter import IssuesCallback
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 
 
-AbbreviatedGitIssues = NewType('AbbreviatedGitIssues', List[AbbreviatedGitIssue])
 
-Slug  = NewType('Slug',  str)
-Slugs = NewType('Slugs', List[Slug])
-
-IssuesCallback = Callable[[str], None]
-
-
-class GithubAdapter:
+class GitHubAdapter(IGitHubAdapter):
 
     ALL_ISSUES_INDICATOR:     str = 'All'
     OPEN_MILESTONE_INDICATOR: str = 'Open'
@@ -117,9 +96,9 @@ class GithubAdapter:
         """
 
         repo:            Repository    = self._github.get_repo(repoName)
-        mileStones:      PaginatedList = repo.get_milestones(state=GithubAdapter.OPEN_MILESTONE_INDICATOR)
+        mileStones:      PaginatedList = repo.get_milestones(state=GitHubAdapter.OPEN_MILESTONE_INDICATOR)
 
-        mileStoneTitles: MilestoneTitles = MilestoneTitles([GithubAdapter.ALL_ISSUES_INDICATOR])
+        mileStoneTitles: MilestoneTitles = MilestoneTitles([GitHubAdapter.ALL_ISSUES_INDICATOR])
 
         for mileStone in mileStones:
             mileStoneTitles.append(mileStone.title)
@@ -139,11 +118,11 @@ class GithubAdapter:
         """
 
         repo:        Repository      = self._github.get_repo(repoName)
-        openGitIssues: PaginatedList = repo.get_issues(state=GithubAdapter.OPEN_ISSUE_INDICATOR)
+        openGitIssues: PaginatedList = repo.get_issues(state=GitHubAdapter.OPEN_ISSUE_INDICATOR)
 
         simpleGitIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
 
-        if milestoneTitle == GithubAdapter.ALL_ISSUES_INDICATOR:
+        if milestoneTitle == GitHubAdapter.ALL_ISSUES_INDICATOR:
             for openIssue in openGitIssues:
                 simpleGitIssues.append(self._createAbbreviatedGitIssue(slug=repoName, fullGitIssue=openIssue))
         else:

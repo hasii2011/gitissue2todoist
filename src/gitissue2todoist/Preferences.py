@@ -20,6 +20,8 @@ from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCre
 
 DEFAULT_APP_WIDTH:    int        = 1024
 DEFAULT_APP_HEIGHT:   int        = 768
+DEFAULT_MAX_REPOS:    str        = '100'
+
 DEFAULT_POSITION:     str        = Position(32, 32).__str__()
 DEFAULT_STARTUP_SIZE: Dimensions = Dimensions(width=DEFAULT_APP_WIDTH, height=DEFAULT_APP_HEIGHT).__str__()
 
@@ -39,9 +41,10 @@ SECTION_MAIN: ValueDescriptions = ValueDescriptions(
 
 SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
     {
-        KeyName('gitHubAPIToken'):  ValueDescription(defaultValue='Put Your GitHub API Token Here'),
-        KeyName('gitHubUserName'):  ValueDescription(defaultValue='Put Your GitHub User Name Here'),
-        KeyName('gitHubURLOption'): ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
+        KeyName('gitHubAPIToken'):     ValueDescription(defaultValue='Put Your GitHub API Token Here'),
+        KeyName('gitHubUserName'):     ValueDescription(defaultValue='Put Your GitHub User Name Here'),
+        KeyName('maxReposToRetrieve'): ValueDescription(defaultValue=DEFAULT_MAX_REPOS, deserializer=SecureConversions.secureInteger),
+        KeyName('gitHubURLOption'):    ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
     }
 )
 

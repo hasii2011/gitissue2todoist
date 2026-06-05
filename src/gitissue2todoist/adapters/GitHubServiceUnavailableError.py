@@ -1,0 +1,2 @@
+class GitHubServiceUnavailableError(Exception):
+    pass

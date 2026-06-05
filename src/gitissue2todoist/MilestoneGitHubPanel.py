@@ -11,9 +11,9 @@ from toga.style.pack import ROW
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.Preferences import Preferences
-from gitissue2todoist.adapters.GithubAdapter import GithubAdapter
-from gitissue2todoist.adapters.GithubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.GithubAdapter import Slug
+from gitissue2todoist.adapters.GitHubAdapter import GitHubAdapter
+from gitissue2todoist.adapters.GitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.GitHubAdapter import Slug
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -28,7 +28,7 @@ class MilestoneGitHubPanel(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: GithubAdapter = GithubAdapter(
+        self._githubAdapter: GitHubAdapter = GitHubAdapter(
             userName=self._preferences.gitHubUserName,
             authenticationToken=self._preferences.gitHubAPIToken
         )
