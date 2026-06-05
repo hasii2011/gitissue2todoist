@@ -1,8 +1,10 @@
-from typing import Any
 
-from httpx import Response
+from typing import Any
+from typing import List
+
 from httpx import get
 from httpx import codes
+from httpx import Response
 from httpx import RequestError
 from httpx import HTTPStatusError
 
@@ -19,8 +21,16 @@ from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenti
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.GitHubServiceUnavailableError import GitHubServiceUnavailableError
 
-PER_PAGE_PARAMETER_NAME: str = 'per_page'
-USER_REPOS_ENDPOINT:     str = 'https://api.github.com/user/repos'
+AUTHENTICATION_FAILED: str = 'Authentication failed'
+CONNECTION_FAILED:     str = 'Connection failed:'
+SERVICE_DOWN:          str = 'GitHub service unavailable:'
+
+PER_PAGE_PARAMETER_NAME:     str = 'per_page'
+USER_REPOS_ENDPOINT:         str = 'https://api.github.com/user/repos'
+MILESTONES_BY_REPO_ENDPOINT: str = ''
+AUTH_TOKEN_NAME:             str = 'Bearer'
+
+GenericJson = List[dict[str, Any]]
 
 
 class HttpxGitHubAdapter(IGitHubAdapter):
@@ -35,7 +45,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
     def getRepositoryNames(self) -> Slugs:
         headers = {
             'Accept': 'application/vnd.github.v3+json',
-            'Authorization': f'Bearer {self._authenticationToken}'
+            'Authorization': f'{AUTH_TOKEN_NAME} {self._authenticationToken}'
         }
         
         try:
@@ -48,7 +58,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
             
             response.raise_for_status()
                 
-            repos: list[dict[str, Any]] = response.json()
+            repos: GenericJson= response.json()
             slugs: Slugs                = Slugs([])
             for repo in repos:
                 slugs.append(Slug(repo['full_name']))
@@ -56,15 +66,42 @@ class HttpxGitHubAdapter(IGitHubAdapter):
 
         except HTTPStatusError as e:
             if e.response.status_code in (codes.UNAUTHORIZED, codes.FORBIDDEN):
-                raise AdapterAuthenticationError('Authentication failed') from e
-            raise GitHubServiceUnavailableError(f'GitHub service unavailable: {str(e)}') from e
+                raise AdapterAuthenticationError(AUTHENTICATION_FAILED) from e
+            raise GitHubServiceUnavailableError(f'{SERVICE_DOWN} {str(e)}') from e
         except RequestError as e:
-            raise GitHubConnectionError(f'Connection failed: {str(e)}') from e
+            raise GitHubConnectionError(f'{CONNECTION_FAILED} {str(e)}') from e
 
         return slugs
 
     def getMileStoneTitles(self, repoName: Slug) -> MilestoneTitles:
-        return MilestoneTitles([])
+        headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': f'{AUTH_TOKEN_NAME} {self._authenticationToken}'
+        }
+        
+        try:
+            response: Response = get(
+                f'https://api.github.com/repos/{repoName}/milestones',
+                headers=headers,
+                params={PER_PAGE_PARAMETER_NAME: self._preferences.maxReposToRetrieve}
+            )
+            
+            response.raise_for_status()
+            
+            milestones:      GenericJson     = response.json()
+            milestoneTitles: MilestoneTitles = MilestoneTitles([])
+
+            for milestone in milestones:
+                milestoneTitles.append(milestone['title'])
+                
+        except HTTPStatusError as e:
+            if e.response.status_code in (codes.UNAUTHORIZED, codes.FORBIDDEN):
+                raise AdapterAuthenticationError(AUTHENTICATION_FAILED) from e
+            raise GitHubServiceUnavailableError(f'{SERVICE_DOWN} {str(e)}') from e
+        except RequestError as e:
+            raise GitHubConnectionError(f'{CONNECTION_FAILED} {str(e)}') from e
+
+        return milestoneTitles
 
     def getAbbreviatedIssues(self, repoName: Slug, milestoneTitle: str) -> AbbreviatedGitIssues:
         return AbbreviatedGitIssues([])

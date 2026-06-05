@@ -8,6 +8,8 @@ from os import environ as osEnvironment
 
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 
 
@@ -27,13 +29,7 @@ class TestHttpxGitHubAdapter(UnitTestBase):
 
         self._preferences: Preferences = Preferences()
 
-        self._userName:    str = ''
         self._gitHubToken: str = ''
-        try:
-            self._userName = osEnvironment['GITHUB_USERNAME']
-        except KeyError:
-            self.logger.warning(f'GitHub user name not set')
-
         try:
             self._gitHubToken = osEnvironment['GH_TOKEN']
         except KeyError:
@@ -44,7 +40,7 @@ class TestHttpxGitHubAdapter(UnitTestBase):
         super().tearDown()
 
     def testGetRepositoryNames(self):
-        if self._userName == '' or self._gitHubToken == '':
+        if self._gitHubToken == '':
             self.logger.warning(f'Cannot run test either token or user name not set in environment')
         else:
             adapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._gitHubToken)
@@ -52,9 +48,16 @@ class TestHttpxGitHubAdapter(UnitTestBase):
             slugs: Slugs = adapter.getRepositoryNames()
             self.assertTrue(len(slugs) != 0, 'We should find someting')
 
-    def testName2(self):
-        """Another test"""
-        pass
+    def testGetMileStoneTitles(self):
+
+        if self._gitHubToken == '':
+            self.logger.warning(f'Cannot run test either token or user name not set in environment')
+        else:
+            adapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._gitHubToken)
+
+            mileStoneTitles: MilestoneTitles = adapter.getMileStoneTitles(repoName=Slug('hasii2011/testrepository'))
+
+            self.assertTrue(len(mileStoneTitles) != 0, 'We should find some milestones')
 
 
 def suite() -> TestSuite:
