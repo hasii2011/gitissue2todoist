@@ -1,4 +1,6 @@
 
+from typing import cast
+
 from logging import Logger
 from logging import getLogger
 
@@ -28,7 +30,7 @@ class MilestoneGitHubPanel(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        self._githubAdapter: HttpxGitHubAdapter = cast(HttpxGitHubAdapter, None)        # noqa
 
         repositoryLabel: Label = Label(
             'Repository Milestone Titles',
@@ -46,8 +48,18 @@ class MilestoneGitHubPanel(Box):
         self._pubSubEngine.subscribe(messageType=MessageType.LOAD_MILESTONES, listener=self._loadMilestonesListener)
 
     def _loadMilestonesListener(self, repositoryName: Slug):
+        """
+        Delay getting the GitHub Adapter as long as possible in case the authentication token has
+        changed
+
+        Args:
+            repositoryName:
+
+        """
 
         self.logger.info(f'Time to load milestones for {repositoryName}')
+        self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+
         milestoneTitles: MilestoneTitles = self._githubAdapter.getMileStoneTitles(repoName=repositoryName)
 
         self._mileStoneTitlesSelection.items = milestoneTitles

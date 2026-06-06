@@ -80,6 +80,9 @@ class Preferences(DynamicConfiguration, metaclass=SingletonV3):
         4. IOS requiest that the directory exists
         5. Override the internal file path
         6. Reload the configuration from the sandboxed path
+
+    On macOS
+        <home>/Library/Preferences/org.gitissue2todoist.gitissue2todoist'
     """
     def __init__(self):
         self._logger: Logger = getLogger(__name__)

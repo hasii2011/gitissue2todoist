@@ -41,18 +41,15 @@ GenericJsonList = List[GenericJson]
 
 
 class HttpxGitHubAdapter(IGitHubAdapter):
+    """
 
+    """
 
     def __init__(self, authenticationToken: str):
 
         self._authenticationToken: str = authenticationToken
 
         self._preferences: Preferences = Preferences()
-
-        self._headers = {
-            'Accept': 'application/vnd.github.v3+json',
-            'Authorization': f'{AUTH_TOKEN_NAME} {self._authenticationToken}'
-        }
 
     def getRepositoryNames(self) -> Slugs:
 
@@ -224,3 +221,19 @@ class HttpxGitHubAdapter(IGitHubAdapter):
             simpleIssue.labels.append(label.get('name', ''))
             
         return simpleIssue
+
+    @property
+    def _headers(self):
+        """
+        Implemented in this manner in order to always retrieve the most current authentication
+        token
+
+        Returns:  The request header
+        """
+
+        headers = {
+            'Accept': 'application/vnd.github.v3+json',
+            'Authorization': f'{AUTH_TOKEN_NAME} {self._authenticationToken}'
+        }
+
+        return headers

@@ -78,21 +78,24 @@ class RepositorySelector(Box):
 
 
     async def _handleAuthenticationError(self):
-        #
-        # Tell mypy to stfu
-        #
-        assert self.window is not None
-        # noinspection PyUnresolvedReferences
-        await self.window.dialog(
-            dialog=ErrorDialog(title='Error', message='GitHub authentication error')
-        )
-    #     # with DlgConfigure(self) as dlg:
-    #     #     if dlg.ShowModal() == OK:
-    #     #         githubToken: str = self._preferences.gitHubAPIToken
-    #     #         userName:    str = self._preferences.gitHubUserName
-    #     #         self._githubAdapter = GithubAdapter(userName=userName, authenticationToken=githubToken)
-    #     #
-    #     #         self._populateRepositories()  # I hate recursion
+        import sys
+        
+        if sys.platform == 'ios':
+            from gitissue2todoist.IOSAuthenticationDialog import IOSAuthenticationDialog
+            authDialog = IOSAuthenticationDialog(preferences=self._preferences)
+        elif sys.platform == 'darwin':
+            from gitissue2todoist.AuthenticationDialog import AuthenticationDialog
+            authDialog = AuthenticationDialog(preferences=self._preferences)
+        else:
+            assert False, 'Unsupported platform'
+
+        okPressed: bool = await authDialog.show_dialog()
+        
+        if okPressed:
+            # Re-initialize the adapter with the new token
+            self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+            # Try again!
+            await self.populateRepositories()
 
     async def _handleGitHubConnectionError(self):
         #
