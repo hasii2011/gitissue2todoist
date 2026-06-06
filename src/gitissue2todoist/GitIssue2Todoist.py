@@ -48,28 +48,34 @@ class GitIssue2Todoist(App):
         show the main window.
         """
 
-        mainContainer: Box = Box(style=Pack(direction=COLUMN))
-
-        self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
-
-        if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
-                self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
-            self._milestoneGithubPanel = MilestoneGitHubPanel(pubSubEngine=self._pubSubEngine)
-        else:
-            assert False, 'Not yet implemented'
-
-        mainContainer.add(self._repositorySelector)
-        mainContainer.add(self._milestoneGithubPanel)
         self.main_window = MainWindow(title=self.formal_name)
         assert self.main_window is not None
-        #
-        # Tell mypy to stfu
-        #
         assert not isinstance(self.main_window, str)
-        self.main_window.content = mainContainer
 
-        # noinspection PyUnresolvedReferences
-        self.main_window.show()
+        try:
+            mainContainer: Box = Box(style=Pack(direction=COLUMN))
+
+            self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
+
+            if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
+                    self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
+                self._milestoneGithubPanel = MilestoneGitHubPanel(pubSubEngine=self._pubSubEngine)
+            else:
+                assert False, 'Not yet implemented'
+
+            mainContainer.add(self._repositorySelector)
+            mainContainer.add(self._milestoneGithubPanel)
+
+            self.main_window.content = mainContainer
+
+            # noinspection PyUnresolvedReferences
+            self.main_window.show()
+            
+        except Exception as e:
+            print(f"FATAL ERROR IN STARTUP: {e}")
+            import traceback
+            traceback.print_exc()
+            raise e
 
     # noinspection PyUnusedLocal
     def _actionExit(self, widget, **kwargs) -> None:

@@ -11,6 +11,7 @@ from httpx import RequestError
 from httpx import HTTPStatusError
 
 from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
@@ -30,8 +31,10 @@ SERVICE_DOWN:          str = 'GitHub service unavailable:'
 
 PER_PAGE_PARAMETER_NAME:     str = 'per_page'
 USER_REPOS_ENDPOINT:         URL = URL('https://api.github.com/user/repos')
-MILESTONES_BY_REPO_ENDPOINT: str = ''
-AUTH_TOKEN_NAME:             str = 'Bearer'
+
+AUTH_TOKEN_NAME:      str = 'Bearer'
+ALL_ISSUES_INDICATOR: str = 'All'
+OPEN_ISSUE_INDICATOR: str = 'open'
 
 GenericJson     = Dict[str, Any]
 GenericJsonList = List[GenericJson]
@@ -39,8 +42,6 @@ GenericJsonList = List[GenericJson]
 
 class HttpxGitHubAdapter(IGitHubAdapter):
 
-    ALL_ISSUES_INDICATOR: str = 'All'
-    OPEN_ISSUE_INDICATOR: str = 'open'
 
     def __init__(self, authenticationToken: str):
 
@@ -92,7 +93,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
             response.raise_for_status()
             
             milestones: GenericJsonList= response.json()
-            milestoneTitles: MilestoneTitles = MilestoneTitles([HttpxGitHubAdapter.ALL_ISSUES_INDICATOR])
+            milestoneTitles: MilestoneTitles = MilestoneTitles([ALL_ISSUES_INDICATOR])
             for milestone in milestones:
                 milestoneTitles.append(milestone['title'])
                 
@@ -113,7 +114,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
                 url=url,
                 headers=self._headers,
                 params={
-                    'state': HttpxGitHubAdapter.OPEN_ISSUE_INDICATOR,
+                    'state': OPEN_ISSUE_INDICATOR,
                     PER_PAGE_PARAMETER_NAME: self._preferences.maxReposToRetrieve
                 }
             )
@@ -123,7 +124,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
             openGitIssues:   GenericJsonList = response.json()
             simpleGitIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
             
-            if milestoneTitle == HttpxGitHubAdapter.ALL_ISSUES_INDICATOR:
+            if milestoneTitle == ALL_ISSUES_INDICATOR:
                 for openIssue in openGitIssues:
                     simpleGitIssues.append(self._createAbbreviatedGitIssue(slug=repoName, fullGitIssue=openIssue))
             else:
@@ -142,7 +143,61 @@ class HttpxGitHubAdapter(IGitHubAdapter):
         return simpleGitIssues
 
     def getIssuesAssignedToOwner(self, slugs: Slugs, issueOwner: IssueOwner, callback: IssuesCallback) -> AbbreviatedGitIssues:
-        return AbbreviatedGitIssues([])
+        """
+
+        Args:
+            slugs:      The repositories to read through
+            issueOwner: The issue owner we are looking for
+            callback:   Where we report our current process
+
+        Returns:  The LARGE list of issues that the issueOwner is named as the assignee
+        """
+        abbreviatedGitIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
+
+        repoCount: int = 0
+        try:
+            for slug in slugs:
+                url: URL = URL(f'https://api.github.com/repos/{slug}/issues')
+                response: Response = get(
+                    url=url,
+                    headers=self._headers,
+                    params={
+                        'state': OPEN_ISSUE_INDICATOR,
+                        PER_PAGE_PARAMETER_NAME: self._preferences.maxReposToRetrieve
+                    }
+                )
+                
+                response.raise_for_status()
+                
+                openGitIssues: GenericJsonList = response.json()
+                issueCount:    int             = 0
+
+                for openIssue in openGitIssues:
+                    assignee: GenericJson | None = openIssue.get('assignee')
+                    
+                    if assignee is None:
+                        pass
+                    elif assignee.get('login') == issueOwner:
+                        abbreviatedGitIssues.append(self._createAbbreviatedGitIssue(slug=slug, fullGitIssue=openIssue))
+                        issueCount += 1
+                        
+                repoCount += 1
+                intermediateStatus: IntermediateStatus = IntermediateStatus(
+                    totalNumberOfRepos=len(slugs),
+                    currentRepoCount=repoCount,
+                    numberOfIssues=issueCount,
+                    nameOfRepoJustProcessed=slug
+                )
+                callback(intermediateStatus)
+                
+        except HTTPStatusError as e:
+            if e.response.status_code in (codes.UNAUTHORIZED, codes.FORBIDDEN):
+                raise AdapterAuthenticationError(AUTHENTICATION_FAILED) from e
+            raise GitHubServiceUnavailableError(f'{SERVICE_DOWN}: {str(e)}') from e
+        except RequestError as e:
+            raise GitHubConnectionError(f'{CONNECTION_FAILED}: {str(e)}') from e
+
+        return abbreviatedGitIssues
         
     def _createAbbreviatedGitIssue(self, slug: Slug, fullGitIssue: GenericJson) -> AbbreviatedGitIssue:
         """
@@ -152,8 +207,7 @@ class HttpxGitHubAdapter(IGitHubAdapter):
             slug:
             fullGitIssue:
 
-        Returns: AbbreviatedGitIssue
-
+        Returns: An AbbreviatedGitIssue
         """
 
         simpleIssue: AbbreviatedGitIssue = AbbreviatedGitIssue()

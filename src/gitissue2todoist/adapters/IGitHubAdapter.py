@@ -33,7 +33,18 @@ AbbreviatedGitIssues = NewType('AbbreviatedGitIssues', List[AbbreviatedGitIssue]
 Slug  = NewType('Slug',  str)
 Slugs = NewType('Slugs', List[Slug])
 
-IssuesCallback = Callable[[str], None]
+@dataclass
+class IntermediateStatus:
+    totalNumberOfRepos:      int        # Total repos we are processing
+    currentRepoCount:        int
+    nameOfRepoJustProcessed: Slug
+    numberOfIssues:          int        # in the just process repo
+
+IssuesCallback = Callable[[IntermediateStatus], None]
+"""
+The callback for .getIssuesAssignedToOwner;  Allows reporting intermediate status
+
+"""
 
 
 class IGitHubAdapter(ABC):

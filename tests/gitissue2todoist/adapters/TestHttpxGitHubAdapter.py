@@ -9,13 +9,24 @@ from os import environ as osEnvironment
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
 from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 
 TEST_REPO_NAME:       Slug = Slug('hasii2011/testrepository')
 TEST_MILESTONE_TITLE: str  = 'Milestone 2'
-EXPECTED_ISSUE_COUNT: int =3
+EXPECTED_ISSUE_COUNT: int  = 3
+
+TEST_SLUGS: Slugs = Slugs(
+    [
+        Slug('hasii2011/testrepository'),
+        Slug('hasii2011/StarTrekPy'),
+        Slug('hasii2011/Chip8Emulator'),
+        Slug('hasii2011/buildlackey')
+    ]
+)
 
 class TestHttpxGitHubAdapter(UnitTestBase):
     """
@@ -75,6 +86,20 @@ class TestHttpxGitHubAdapter(UnitTestBase):
 
             self.assertEqual(EXPECTED_ISSUE_COUNT, actualIssueCount, 'Mismatch on test repo, milestone issues')
 
+    def testGetIssuesAssignedToOwner(self):
+        if self._gitHubToken == '':
+            self.logger.warning(f'Cannot run test either token or user name not set in environment')
+        else:
+            adapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._gitHubToken)
+            abbreviatedGitIssues: AbbreviatedGitIssues = adapter.getIssuesAssignedToOwner(
+                slugs=TEST_SLUGS,
+                issueOwner=IssueOwner('hasii2011'),
+                callback=self._statusCallback
+            )
+            self.assertTrue(len(abbreviatedGitIssues) !=0, 'We must, we must improve our count')
+
+    def _statusCallback(self, status: IntermediateStatus):
+        self.logger.warning(f'{status.nameOfRepoJustProcessed=}')
 
 def suite() -> TestSuite:
     import unittest

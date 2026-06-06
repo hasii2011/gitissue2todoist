@@ -4,16 +4,16 @@ from logging import getLogger
 
 from toga import Box
 from toga import Label
-from toga import Table
+from toga import Selection
 
 from toga.style import Pack
 from toga.style.pack import ROW
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.Preferences import Preferences
-from gitissue2todoist.adapters.GitHubAdapter import GitHubAdapter
-from gitissue2todoist.adapters.GitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.GitHubAdapter import Slug
+from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IGitHubAdapter import Slug
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -28,24 +28,18 @@ class MilestoneGitHubPanel(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: GitHubAdapter = GitHubAdapter(
-            userName=self._preferences.gitHubUserName,
-            authenticationToken=self._preferences.gitHubAPIToken
-        )
+        self._githubAdapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
         repositoryLabel: Label = Label(
             'Repository Milestone Titles',
             style=Pack(margin=(2, 5)),
         )
 
-        self._mileStoneTitlesTable: Table = Table(
-            columns=['Issues'],
-            data=[],
-            multiple_select=True,
-            show_headings=False,
-            on_select=self._onSelectHandler
+        self._mileStoneTitlesSelection: Selection = Selection(
+            items=[],
+            on_change=self._onSelectHandler
         )
-        mileStoneTitlesBox: Box = Box(children=[repositoryLabel, self._mileStoneTitlesTable], style=Pack(direction=COLUMN))
+        mileStoneTitlesBox: Box = Box(children=[repositoryLabel, self._mileStoneTitlesSelection], style=Pack(direction=COLUMN))
 
         self.add(mileStoneTitlesBox)
 
@@ -56,7 +50,7 @@ class MilestoneGitHubPanel(Box):
         self.logger.info(f'Time to load milestones for {repositoryName}')
         milestoneTitles: MilestoneTitles = self._githubAdapter.getMileStoneTitles(repoName=repositoryName)
 
-        self._mileStoneTitlesTable.data = milestoneTitles
+        self._mileStoneTitlesSelection.items = milestoneTitles
 
     def _onSelectHandler(self, arg1):
         pass

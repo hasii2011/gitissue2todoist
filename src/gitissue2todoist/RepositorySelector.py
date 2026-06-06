@@ -10,13 +10,13 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.adapters.GitHubAdapter import Slug
-from gitissue2todoist.adapters.GitHubAdapter import Slugs
-from gitissue2todoist.adapters.GitHubAdapter import GitHubAdapter
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -36,10 +36,7 @@ class RepositorySelector(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: GitHubAdapter = GitHubAdapter(
-            userName=self._preferences.gitHubUserName,
-            authenticationToken=self._preferences.gitHubAPIToken
-        )
+        self._githubAdapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
         repositoryLabel: Label = Label(
             'Repositories',
