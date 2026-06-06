@@ -2,6 +2,10 @@
 from logging import Logger
 from logging import getLogger
 
+from pathlib import Path
+
+from toga import App
+
 from codeallybasic.Position import Position
 from codeallybasic.Dimensions import Dimensions
 from codeallybasic.SingletonV3 import SingletonV3
@@ -68,10 +72,26 @@ CONFIGURATION_SECTIONS: Sections = Sections(
 
 
 class Preferences(DynamicConfiguration, metaclass=SingletonV3):
+    """
+    This updated class runs on both macOS and IOS
+        1. Let the original __init__ run. (On desktop it finds the file; on iOS it safely misses it)
+        2. Check if we are running as Toga application
+        3. Retrieve the strictly safe sandbox directory (iOS, macOS, Android, Windows)
+        4. IOS requiest that the directory exists
+        5. Override the internal file path
+        6. Reload the configuration from the sandboxed path
+    """
     def __init__(self):
         self._logger: Logger = getLogger(__name__)
 
         baseFileName: str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}.ini'
         moduleName:   str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}'
 
-        super().__init__(baseFileName=baseFileName, moduleName=moduleName, sections=CONFIGURATION_SECTIONS)
+        super().__init__(baseFileName=baseFileName, moduleName=moduleName, sections=CONFIGURATION_SECTIONS)     # 1
+
+        if App.app is not None:                                                                                 # 2
+            togaConfigDir: Path = App.app.paths.config                                                          # 3
+
+            togaConfigDir.mkdir(parents=True, exist_ok=True)                                                    # 4
+            self._fqFileName = togaConfigDir / baseFileName                                                     # 5
+            self._loadConfiguration()                                                                           # 6
