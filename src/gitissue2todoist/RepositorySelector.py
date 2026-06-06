@@ -2,6 +2,10 @@
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
+
+from asyncio import to_thread
+
 from toga import Box
 from toga import ErrorDialog
 from toga import Label
@@ -17,6 +21,10 @@ from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
+
+from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
+from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
+from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -50,11 +58,9 @@ class RepositorySelector(Box):
         self.add(self._repositorySelection)
 
     async def populateRepositories(self):
-        import asyncio
-
         try:
             # Run the synchronous GitHub query in a background thread to prevent UI freezing
-            repoNames: Slugs = await asyncio.to_thread(self._githubAdapter.getRepositoryNames)
+            repoNames: Slugs = await to_thread(self._githubAdapter.getRepositoryNames)
             repoNames.sort()
             repoNames.insert(0, NO_SELECTION_SLUG)
 
@@ -79,18 +85,15 @@ class RepositorySelector(Box):
 
 
     async def _handleAuthenticationError(self):
-        import sys
-        
-        if sys.platform == 'ios':
-            from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
-            authDialog = IOSAuthenticationDialog(preferences=self._preferences)
-        elif sys.platform == 'darwin':
-            from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
+
+        if sysPlatform == 'ios':
+            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(preferences=self._preferences)
+        elif sysPlatform == 'darwin':
             authDialog = AuthenticationDialog(preferences=self._preferences)
         else:
             assert False, 'Unsupported platform'
 
-        okPressed: bool = await authDialog.show_dialog()
+        okPressed: bool = await authDialog.showDialog()
         
         if okPressed:
             # Re-initialize the adapter with the new token
