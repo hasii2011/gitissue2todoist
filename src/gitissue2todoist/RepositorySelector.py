@@ -55,6 +55,7 @@ class RepositorySelector(Box):
         try:
             # Run the synchronous GitHub query in a background thread to prevent UI freezing
             repoNames: Slugs = await asyncio.to_thread(self._githubAdapter.getRepositoryNames)
+            repoNames.sort()
             repoNames.insert(0, NO_SELECTION_SLUG)
 
             self._repositorySelection.items = repoNames
@@ -81,10 +82,10 @@ class RepositorySelector(Box):
         import sys
         
         if sys.platform == 'ios':
-            from gitissue2todoist.IOSAuthenticationDialog import IOSAuthenticationDialog
+            from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
             authDialog = IOSAuthenticationDialog(preferences=self._preferences)
         elif sys.platform == 'darwin':
-            from gitissue2todoist.AuthenticationDialog import AuthenticationDialog
+            from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
             authDialog = AuthenticationDialog(preferences=self._preferences)
         else:
             assert False, 'Unsupported platform'
