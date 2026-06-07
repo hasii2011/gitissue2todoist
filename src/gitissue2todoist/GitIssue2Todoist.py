@@ -82,7 +82,7 @@ class GitIssue2Todoist(App):
         self.exit()
 
     async def on_running(self):
-        await self._repositorySelector.populateRepositories()
+        await self._repositorySelector.loadRepositoriesSelectionList()
 
     def _setupSystemLogging(self):
 

@@ -57,7 +57,7 @@ class RepositorySelector(Box):
         self.add(repositoryLabel)
         self.add(self._repositorySelection)
 
-    async def populateRepositories(self):
+    async def loadRepositoriesSelectionList(self):
         try:
             # Run the synchronous GitHub query in a background thread to prevent UI freezing
             repoNames: Slugs = await to_thread(self._githubAdapter.getRepositoryNames)
@@ -99,7 +99,7 @@ class RepositorySelector(Box):
             # Re-initialize the adapter with the new token
             self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
             # Try again!
-            await self.populateRepositories()
+            await self.loadRepositoriesSelectionList()
 
     async def _handleGitHubConnectionError(self):
         #
