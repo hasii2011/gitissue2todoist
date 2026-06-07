@@ -4,15 +4,21 @@ from typing import cast
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
+
 from toga import Box
 from toga import Label
+from toga import Widget
 from toga import Selection
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.AppCommon import AppCommon
+from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
 from gitissue2todoist.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.MobileMultiSelect import MultiSelectValues
+from gitissue2todoist.MobileRepositoryIssues import MobileRepositoryIssues
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.RepositoryIssues import RepositoryIssues
 from gitissue2todoist.UICommon import UICommon
@@ -45,20 +51,28 @@ class MilestoneGitHubPanel(Box):
         mileStonesBox: Box = Box(children=[mileStonesLabel, self._mileStoneSelection], style=Pack(direction=COLUMN))
 
         issuesLabel:      Label = UICommon.createStandardSectionTitle('Issues')
-        repositoryIssues: RepositoryIssues = RepositoryIssues()
-        # repositoryIssues: MobileMultiSelect = MobileMultiSelect()
-        # repositoryIssues.setValues(
-        #     MultiSelectValues([
-        #         'hasii2011/pytrek',
-        #         'hasii2011/py2appsigner',
-        #         'hasii2011/umldiagrammer',
-        #         'hasii2011/umlmodel',
-        #         'hasii2011/umlio',
-        #         'hasii2011/umlshapes',
-        #     ])
-        # )
+        repositoryIssues: IRepositoryIssues
+        if sysPlatform == AppCommon.PLATFORM_MAC:
+            repositoryIssues = RepositoryIssues()
+        elif sysPlatform == AppCommon.PLATFORM_IOS:
+            repositoryIssues = MobileRepositoryIssues()
+            cast(MobileMultiSelect, repositoryIssues).setValues(
+                MultiSelectValues([
+                    'hasii2011/pytrek',
+                    'hasii2011/py2appsigner',
+                    'hasii2011/umldiagrammer',
+                    'hasii2011/umlmodel',
+                    'hasii2011/umlio',
+                    'hasii2011/umlshapes',
+                ])
+            )
+        else:
+            assert False, 'Unsupported platform'
 
-        issuesBox: Box = Box(children=[issuesLabel, repositoryIssues], style=Pack(direction=COLUMN, flex=1))
+        issuesBox: Box = Box(
+            children=[issuesLabel, cast(Widget, repositoryIssues)],
+            style=Pack(direction=COLUMN, flex=1)
+        )
 
         self.add(mileStonesBox)
         self.add(issuesBox)

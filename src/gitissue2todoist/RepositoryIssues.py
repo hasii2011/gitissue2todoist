@@ -11,9 +11,11 @@ from toga import Table
 
 from toga.style import Pack
 
-SelectedValues    = NewType('SelectedValues', List[str])
+from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
+from gitissue2todoist.IRepositoryIssues import SelectedIssues
 
-class RepositoryIssues(Table):
+
+class RepositoryIssues(Table, IRepositoryIssues):
     """
     A single column Table with multiple_select enabled
     """
@@ -38,16 +40,16 @@ class RepositoryIssues(Table):
         self.on_select = self.onSelectionChanged
 
     @property
-    def selectedValues(self) -> SelectedValues:
+    def selectedIssues(self) -> SelectedIssues:
         """
 
         Returns: A list of selected values were toggled ON.
         """
-        selectedValues: SelectedValues = SelectedValues([])
+        selectedValues: SelectedIssues = SelectedIssues([])
         selectedRows = cast(list, self.selection)
         if selectedRows:
 
-            selectedValues = SelectedValues([cast(str, getattr(row, 'issues')) for row in selectedRows])
+            selectedValues = SelectedIssues([cast(str, getattr(row, 'issues')) for row in selectedRows])
             self.logger.warning(f'Currently selected: {selectedValues}')
         else:
             self.logger.warning('Nothing selected.')
@@ -70,7 +72,7 @@ class RepositoryIssues(Table):
         selectedRows = cast(list, widget.selection)
         if selectedRows:
             # Access the data using the lowercased column name: 'issues'
-            selectedValues = SelectedValues([cast(str, getattr(row, 'issues')) for row in selectedRows])
+            selectedValues = SelectedIssues([cast(str, getattr(row, 'issues')) for row in selectedRows])
             self.logger.warning(f'Currently selected: {selectedValues}')
         else:
             self.logger.warning('Nothing selected.')

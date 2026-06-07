@@ -14,6 +14,7 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
@@ -85,9 +86,9 @@ class RepositorySelector(Box):
 
     async def _handleAuthenticationError(self):
 
-        if sysPlatform == 'ios':
+        if sysPlatform == AppCommon.PLATFORM_IOS:
             authDialog: IAuthenticationDialog = IOSAuthenticationDialog(preferences=self._preferences)
-        elif sysPlatform == 'darwin':
+        elif sysPlatform == AppCommon.PLATFORM_MAC:
             authDialog = AuthenticationDialog(preferences=self._preferences)
         else:
             assert False, 'Unsupported platform'

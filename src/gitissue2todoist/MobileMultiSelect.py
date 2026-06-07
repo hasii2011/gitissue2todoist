@@ -48,6 +48,21 @@ class MobileMultiSelect(ScrollContainer):
 
         self._switchWidgets: SwitchWidgets = SwitchWidgets([])
 
+    @property
+    def selectedValues(self) -> SelectedValues:
+        """
+
+        Returns: A list of selected values were toggled ON.
+        """
+
+        selectedValues: SelectedValues = SelectedValues([])
+
+        for switch in self._switchWidgets:
+            if switch.value:
+                selectedValues.append(switch.text)
+
+        return selectedValues
+
     def setValues(self, values: MultiSelectValues):
         """
         Clears existing values and replaces them with a new set of values
@@ -75,17 +90,3 @@ class MobileMultiSelect(ScrollContainer):
         # Force the container to recalculate its layout with the new items
         self._switchContainer.refresh()
 
-    @property
-    def selectedValues(self) -> SelectedValues:
-        """
-
-        Returns: A list of selected values were toggled ON.
-        """
-
-        selectedValues: SelectedValues = SelectedValues([])
-
-        for switch in self._switchWidgets:
-            if switch.value:
-                selectedValues.append(switch.text)
-
-        return selectedValues
