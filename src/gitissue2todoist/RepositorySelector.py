@@ -14,6 +14,7 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
 
@@ -40,16 +41,14 @@ class RepositorySelector(Box):
 
         self.logger: Logger = getLogger(__name__)
 
-        super().__init__(style=Pack(direction=COLUMN))
+        style: Pack = Pack(direction=COLUMN, margin_left=UICommon.MARGIN_LEFT, margin_right=UICommon.MARGIN_RIGHT)
+        super().__init__(style=style)
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
         self._githubAdapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
-        repositoryLabel: Label = Label(
-            'Repositories',
-            style=Pack(margin=(2, 5)),
-        )
+        repositoryLabel:           Label     = UICommon.createStandardSectionTitle('Repositories')
         self._repositorySelection: Selection = Selection()
 
         self._repositorySelection.on_change = self._onSelectionChanged

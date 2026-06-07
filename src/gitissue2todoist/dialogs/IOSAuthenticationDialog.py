@@ -71,18 +71,18 @@ class IOSAuthenticationDialog(IAuthenticationDialog):
 
         self._tokenInput = TextInput(value=self._preferences.gitHubAPIToken, style=Pack(flex=1))
 
-        saveButton:   Button = Button('Save', on_press=self._onSave, style=Pack(padding=5))
-        cancelButton: Button = Button('Cancel', on_press=self._onCancel, style=Pack(padding=5))
+        saveButton:   Button = Button('Save', on_press=self._onSave, style=Pack(margin=5))
+        cancelButton: Button = Button('Cancel', on_press=self._onCancel, style=Pack(margin=5))
 
-        buttonBox: Box = Box(children=[saveButton, cancelButton], style=Pack(direction=ROW, padding_top=10))
+        buttonBox: Box = Box(children=[saveButton, cancelButton], style=Pack(direction=ROW, margin_top=10))
 
         authBox: Box = Box(
             children=[
-                Label('Authentication Failed. Please enter your GitHub API Token:', style=Pack(padding_bottom=5)),
+                Label('Authentication Failed. Please enter your GitHub API Token:', style=Pack(margin_bottom=5)),
                 self._tokenInput,
                 buttonBox
             ],
-            style=Pack(direction=COLUMN, padding=20)
+            style=Pack(direction=COLUMN, margin=20)
         )
         return authBox
 

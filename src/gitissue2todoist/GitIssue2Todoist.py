@@ -53,7 +53,7 @@ class GitIssue2Todoist(App):
         assert not isinstance(self.main_window, str)
 
         try:
-            mainContainer: Box = Box(style=Pack(direction=COLUMN))
+            mainContainer: Box = Box(style=Pack(direction=COLUMN, flex=1, margin_left=5, gap=10))
 
             self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
 
