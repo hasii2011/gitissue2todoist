@@ -81,8 +81,7 @@ class RepositorySelector(Box):
         else:
             self.logger.info(f'{repositoryName=}')
             self._pubSubEngine.sendMessage(messageType=MessageType.LOAD_MILESTONES, repositoryName=repositoryName)
-            pass    # send message to listener
-
+            UICommon.popDownPicker(selection=self._repositorySelection)
 
     async def _handleAuthenticationError(self):
 

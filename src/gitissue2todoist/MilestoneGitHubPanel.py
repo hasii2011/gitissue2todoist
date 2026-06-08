@@ -93,3 +93,5 @@ class MilestoneGitHubPanel(Box):
         selection: Selection = cast(Selection, widget)
         mileStone: str = cast(str, selection.value)
         self._pubSubEngine.sendMessage(messageType=MessageType.LOAD_ISSUES, repositoryName=self._repositoryName, milestoneTitle=mileStone)
+        UICommon.popDownPicker(selection=self._mileStoneSelection)
+
