@@ -1,22 +1,25 @@
 
 # This project was generated with 0.4.2 using template: https://github.com/beeware/briefcase-template @ v0.4.2
+
 [tool.briefcase]
 project_name = "gitissue2todoist"
 bundle = "org.gitissue2todoist"
-version = "0.0.1"
+version = '0.0.1'
 url = "https://github.com/hasii2011/gitissue2todoist"
-license = "GPL-3.0+"
-license-files = ["LICENSE"]
-author = "Humberto A. Sanchez II"
-author_email = "humberto.a.sanchez.ii@gmail.com"
+license = 'AGPL-1.0-or-later'
+license-files = ['LICENSE']
+author = 'Humberto A. Sanchez II'
+author_email = 'Humberto.A.Sanchez.II@gmail.com'
 
 [tool.briefcase.app.gitissue2todoist]
 formal_name = 'gitissue2todoist'
 description = 'Converts Git issues to Todoist tasks'
+
 long_description = """More details about the app should go here."""
 sources = [
     "src/gitissue2todoist",
 ]
+
 icon = "developer/gitissue2todoist"
 test_sources = [
     "tests",
