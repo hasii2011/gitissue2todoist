@@ -16,16 +16,15 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
-from gitissue2todoist.MobileMultiSelect import MobileMultiSelect
-from gitissue2todoist.MobileMultiSelect import MultiSelectValues
-from gitissue2todoist.MobileRepositoryIssues import MobileRepositoryIssues
-from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.RepositoryIssues import RepositoryIssues
+from gitissue2todoist.MobileRepositoryIssues import MobileRepositoryIssues
+
+from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -46,26 +45,17 @@ class MilestoneGitHubPanel(Box):
         mileStonesLabel: Label = UICommon.createStandardSectionTitle('Repository Milestone Titles')
         self._mileStoneSelection: Selection = Selection(
             items=[],
-            on_change=self._onSelectHandler
+            on_change=self._onMilestoneSelectedHandler
         )
         mileStonesBox: Box = Box(children=[mileStonesLabel, self._mileStoneSelection], style=Pack(direction=COLUMN))
 
         issuesLabel:      Label = UICommon.createStandardSectionTitle('Issues')
         repositoryIssues: IRepositoryIssues
+
         if sysPlatform == AppCommon.PLATFORM_MAC:
-            repositoryIssues = RepositoryIssues()
+            repositoryIssues = RepositoryIssues(pubSubEngine=self._pubSubEngine)
         elif sysPlatform == AppCommon.PLATFORM_IOS:
-            repositoryIssues = MobileRepositoryIssues()
-            cast(MobileMultiSelect, repositoryIssues).setValues(
-                MultiSelectValues([
-                    'hasii2011/pytrek',
-                    'hasii2011/py2appsigner',
-                    'hasii2011/umldiagrammer',
-                    'hasii2011/umlmodel',
-                    'hasii2011/umlio',
-                    'hasii2011/umlshapes',
-                ])
-            )
+            repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)
         else:
             assert False, 'Unsupported platform'
 
@@ -79,6 +69,8 @@ class MilestoneGitHubPanel(Box):
 
         self._pubSubEngine.subscribe(messageType=MessageType.LOAD_MILESTONES, listener=self._loadMilestonesListener)
 
+        self._repositoryName: Slug = Slug('')         # set by ._loadMilestonesListener
+
     def _loadMilestonesListener(self, repositoryName: Slug):
         """
         Delay getting the GitHub Adapter as long as possible in case the authentication token has
@@ -88,7 +80,7 @@ class MilestoneGitHubPanel(Box):
             repositoryName:
 
         """
-
+        self._repositoryName = repositoryName
         self.logger.info(f'Time to load milestones for {repositoryName}')
         self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
@@ -96,5 +88,8 @@ class MilestoneGitHubPanel(Box):
 
         self._mileStoneSelection.items = milestoneTitles
 
-    def _onSelectHandler(self, arg1):
-        pass
+    def _onMilestoneSelectedHandler(self, widget):
+
+        selection: Selection = cast(Selection, widget)
+        mileStone: str = cast(str, selection.value)
+        self._pubSubEngine.sendMessage(messageType=MessageType.LOAD_ISSUES, repositoryName=self._repositoryName, milestoneTitle=mileStone)
