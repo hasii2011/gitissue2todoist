@@ -46,6 +46,7 @@ class TodoistPanel(Box):
         )
         buttonContainer, createTasksButton = UICommon.createRightAlignedButton(buttonText='Create Tasks', onPressHandler=self._onCreateTasks)
 
+        buttonContainer.style.margin_right = 20  # Don't jam the button on the app right side
         # Disabled tasks are loaded
         self._createTasksButton: Button = createTasksButton
         self._createTasksButton.enabled = False

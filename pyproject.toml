@@ -11,6 +11,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 # setuptools_scm will automatically generate this file with the git tag version!
 version_file = "src/gitissue2todoist/_version.py"
+
 [tool.briefcase]
 project_name = "gitissue2todoist"
 bundle = "org.gitissue2todoist"
@@ -30,7 +31,7 @@ sources = [
     "src/gitissue2todoist",
 ]
 
-icon = "developer/gitissue2todoist"
+icon = 'developer/gitissue2todoist'
 test_sources = [
     "tests",
 ]
