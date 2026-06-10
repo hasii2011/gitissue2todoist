@@ -12,8 +12,8 @@ from toga.style.pack import COLUMN
 from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
 from gitissue2todoist.IRepositoryIssues import SelectedIssues
 
-from gitissue2todoist.MobileMultiSelect import MobileMultiSelect
-from gitissue2todoist.MobileMultiSelect import MultiSelectValues
+from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
+from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
 
 from gitissue2todoist.UICommon import UICommon
 

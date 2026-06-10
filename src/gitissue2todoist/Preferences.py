@@ -17,7 +17,7 @@ from codeallybasic.DynamicConfiguration import ValueDescription
 from codeallybasic.DynamicConfiguration import ValueDescriptions
 from codeallybasic.SecureConversions import SecureConversions
 
-from gitissue2todoist.GitHubURLOption import GitHubURLOption
+from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
 from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
@@ -82,7 +82,7 @@ class Preferences(DynamicConfiguration, metaclass=SingletonV3):
         6. Reload the configuration from the sandboxed path
 
     On macOS
-        <home>/Library/Preferences/org.gitissue2todoist.gitissue2todoist'
+        <home>/Library/Preferences/org.gitissue2todoist.gitissue2todoist
     """
     def __init__(self):
         self._logger: Logger = getLogger(__name__)
