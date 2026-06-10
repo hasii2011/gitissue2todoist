@@ -20,11 +20,16 @@ from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
 
 from gitissue2todoist.strategy.TodoistCreateByRepository import ProjectTasks
 from gitissue2todoist.strategy.TodoistCreateByRepository import TodoistCreateByRepository
-
+from tests.gitissue2todoist.strategy.TodoistCleanup import TodoistCleanup
 
 from tests.gitissue2todoist.strategy.TodoistStrategyUnitTestBase import TodoistStrategyUnitTestBase
 
-MOCK_PROJECT_NAME: str = 'MockProject'
+PROJECT_SAFE_TO_DELETE:   str = 'NewProject-SafeToDelete'
+BOGUS_SAFE_TO_DELETE:     str = 'Bogus-SafeToDelete'
+MOCK_REPO_SAFE_TO_DELETE: str = 'MockRepo-SafeToDelete'
+
+MOCK_REPO_TASK:           str = f'MockUser/{MOCK_REPO_SAFE_TO_DELETE}'
+MOCK_PROJECT_NAME:        str = 'MockProject'
 
 NUMBER_OF_TEST_MILESTONE_TASKS: int = 2
 NUMBER_OF_TEST_DEV_TASKS:       int = 4
@@ -52,6 +57,17 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
     def setUpClass(cls):
         super().setUpClass()
 
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Clean up all my projects
+        """
+        super().tearDownClass()
+
+        projectsToDelete = [PROJECT_SAFE_TO_DELETE, BOGUS_SAFE_TO_DELETE, MOCK_REPO_SAFE_TO_DELETE]
+        cleanup: TodoistCleanup = TodoistCleanup(projectsToDelete=projectsToDelete)
+        cleanup.deleteProjects()
+
     def setUp(self):
 
         super().setUp()
@@ -64,7 +80,7 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
     def testRealAPI(self):
 
         ci: CloneInformation = CloneInformation()
-        ci.repositoryTask    = 'MockUser/MockRepo'
+        ci.repositoryTask    = MOCK_REPO_TASK
         ci.milestoneNameTask = 'MockMilestone'
         ci.tasksToClone      = self._createTasksToClone()
 
@@ -85,7 +101,7 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
 
         projectDictionary: ProjectDictionary = strategy._getCurrentProjects()
 
-        projectId: str = strategy._getProjectId(projectName=ProjectName('Bogus'), projectDictionary=projectDictionary)
+        projectId: str = strategy._getProjectId(projectName=ProjectName(BOGUS_SAFE_TO_DELETE), projectDictionary=projectDictionary)
 
         self.assertNotEqual(0, projectId,  'I expected some id')
 
@@ -122,7 +138,7 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
 
         strategy: TodoistCreateByRepository = self._strategy
 
-        projectId: str = self._getAProjectId(projectName=ProjectName('NewProject'))
+        projectId: str = self._getAProjectId(projectName=ProjectName(PROJECT_SAFE_TO_DELETE))
         projectTasks: ProjectTasks = strategy._getProjectTaskItems(projectId=projectId)
 
         self.assertIsNotNone(projectTasks, 'I a basic data class return')
@@ -181,7 +197,7 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
         hyperLinkedTask.gitIssueURL  = 'https://hsanchezii.wordpress.com'
 
         ci: CloneInformation = CloneInformation()
-        ci.repositoryTask    = 'MockUser/MockRepo'
+        ci.repositoryTask    = MOCK_REPO_TASK
         ci.milestoneNameTask = 'MockMilestone'
         ci.tasksToClone      = [hyperLinkedTask]
 
