@@ -1,8 +1,8 @@
 
-from enum import Enum
+from enum import StrEnum
 
 
-class ResourceTextType(Enum):
+class ResourceTextType(StrEnum):
 
     SIMPLE_HELP  = 'SimpleHelp.html'
     VERSION_TEXT = 'version.txt'
