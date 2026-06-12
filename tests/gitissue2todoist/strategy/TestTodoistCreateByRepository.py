@@ -16,10 +16,11 @@ from gitissue2todoist.strategy.AbstractTodoistStrategy import ProjectDictionary
 from gitissue2todoist.strategy.AbstractTodoistStrategy import ProjectName
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
-from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 
 from gitissue2todoist.strategy.TodoistCreateByRepository import ProjectTasks
 from gitissue2todoist.strategy.TodoistCreateByRepository import TodoistCreateByRepository
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 from tests.gitissue2todoist.strategy.TodoistCleanup import TodoistCleanup
 
 from tests.gitissue2todoist.strategy.TodoistStrategyUnitTestBase import TodoistStrategyUnitTestBase
@@ -157,7 +158,7 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
         info: CloneInformation = CloneInformation()
         info.repositoryTask    = MOCK_PROJECT_NAME
         info.milestoneNameTask = 'MockMilestone2'
-        info.tasksToClone      = [GitIssueInfo(gitIssueName='MockTask3'), GitIssueInfo(gitIssueName='MockTask4')]
+        info.tasksToClone      = TaskInfoList([TaskInfo(gitIssueName='MockTask3'), TaskInfo(gitIssueName='MockTask4')])
 
         milestoneTask: Task = strategy._getMilestoneTaskItem(projectId=projectId, milestoneName='MockMilestone2', progressCb=self._sampleCallback)
 
@@ -192,14 +193,14 @@ class TestTodoistCreateByRepository(TodoistStrategyUnitTestBase):
         # Markdown Link format
         # [here](https://github.com/hasii2011/gittodoistclone/wiki/How-to-use-gittodoistclone)
 
-        hyperLinkedTask: GitIssueInfo = GitIssueInfo()
+        hyperLinkedTask: TaskInfo = TaskInfo()
         hyperLinkedTask.gitIssueName = f'I am linked'
         hyperLinkedTask.gitIssueURL  = 'https://hsanchezii.wordpress.com'
 
         ci: CloneInformation = CloneInformation()
         ci.repositoryTask    = MOCK_REPO_TASK
         ci.milestoneNameTask = 'MockMilestone'
-        ci.tasksToClone      = [hyperLinkedTask]
+        ci.tasksToClone      = TaskInfoList([hyperLinkedTask])
 
         preferences: Preferences = Preferences()
 

@@ -9,20 +9,23 @@ from dataclasses import field
 from todoist_api_python.models import Project
 from todoist_api_python.models import Task
 
-
 @dataclass
-class GitIssueInfo:
+class TaskInfo:
     slug:         str = ''
     gitIssueName: str = ''
     gitIssueURL:  str = ''
     labels:       List[str] = field(default_factory=list)
 
+TaskInfoList = NewType('TaskInfoList', List[TaskInfo])
+
+def taskInfoListFactory() -> TaskInfoList:
+    return TaskInfoList([])
 
 @dataclass
 class CloneInformation:
     repositoryTask:    str = ''
     milestoneNameTask: str = ''
-    tasksToClone:      List[GitIssueInfo] = field(default_factory=list)
+    tasksToClone:      TaskInfoList = field(default_factory=taskInfoListFactory)
 
 
 Tasks             = List[Task]

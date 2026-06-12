@@ -25,7 +25,7 @@ from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
-from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectDictionary
 from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectName
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskId
@@ -57,13 +57,13 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
         self._devTasks:          Tasks             = []
         self._projectDictionary: ProjectDictionary = {}
 
-    def _createTaskItem(self, gitIssueInfo: GitIssueInfo, projectId: str, parentTaskItem: Task, progressCb: Callable):
+    def _createTaskItem(self, taskInfo: TaskInfo, projectId: str, parentTaskItem: Task, progressCb: Callable):
         """
         Create a new task if it does not already exist in Todoist
         Assumes self._devTasks has all the project's tasks
 
         Args:
-            gitIssueInfo:       The task (with information) to potentially create
+            taskInfo:       The task (with information) to potentially create
             projectId:      Project id of potential task
             parentTaskItem: parent item if task needs to be created
             progressCb:     Progress callback
@@ -78,7 +78,7 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
             taskItem: Task = devTask
             # Might have name embedded as URL
             # if taskInfo.gitIssueName in taskItem['content']:
-            if gitIssueInfo.gitIssueName in taskItem.content:
+            if taskInfo.gitIssueName in taskItem.content:
                 foundTaskItem = taskItem
                 break
         #
@@ -90,29 +90,29 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
                 case GitHubURLOption.DoNotAdd:
                     todoist.add_task(project_id=projectId,
                                      parent_id=parentTaskItem.id,
-                                     content=gitIssueInfo.gitIssueName)
+                                     content=taskInfo.gitIssueName)
 
                 case GitHubURLOption.AddAsDescription:
                     todoist.add_task(project_id=projectId,
                                      parent_id=parentTaskItem.id,
-                                     content=gitIssueInfo.gitIssueName,
-                                     description=gitIssueInfo.gitIssueURL)
+                                     content=taskInfo.gitIssueName,
+                                     description=taskInfo.gitIssueURL)
 
                 case GitHubURLOption.AddAsComment:
                     task: Task = todoist.add_task(project_id=projectId,
                                                   parent_id=parentTaskItem.id,
-                                                  content=gitIssueInfo.gitIssueName)
-                    comment: Comment = todoist.add_comment(task_id=task.id, content=gitIssueInfo.gitIssueURL)
+                                                  content=taskInfo.gitIssueName)
+                    comment: Comment = todoist.add_comment(task_id=task.id, content=taskInfo.gitIssueURL)
                     AbstractTodoistStrategy.clsLogger.info(f'Comment added: {comment}')
 
                 case GitHubURLOption.HyperLinkedTaskName:
-                    linkedTaskName: str = f'[{gitIssueInfo.gitIssueName}]({gitIssueInfo.gitIssueURL})'
+                    linkedTaskName: str = f'[{taskInfo.gitIssueName}]({taskInfo.gitIssueURL})'
                     todoist.add_task(project_id=projectId,
                                      parent_id=parentTaskItem.id,
                                      content=linkedTaskName)
                 case _:
                     self.clsLogger.error(f'Unknown URL option: {option}')       # noqa
-            progressCb(f'Created task: {gitIssueInfo.gitIssueName}')
+            progressCb(f'Created task: {taskInfo.gitIssueName}')
 
     def _addNoteToTask(self, itemId: str, noteContent: str) -> Comment:
         """
@@ -242,8 +242,8 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
 
             AbstractTodoistStrategy.clsLogger.info(f'{info.repositoryTask=} {info.milestoneNameTask=}')
             for t in info.tasksToClone:
-                gitIssueInfo: GitIssueInfo = t
-                AbstractTodoistStrategy.clsLogger.info(f'{gitIssueInfo.gitIssueName}')
+                taskInfo: TaskInfo = t
+                AbstractTodoistStrategy.clsLogger.info(f'{taskInfo.gitIssueName}')
 
     def _createTaskNameMap(self, taskList: Tasks) -> TaskNameMap:
         """

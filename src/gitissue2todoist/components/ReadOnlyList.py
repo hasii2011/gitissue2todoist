@@ -40,7 +40,7 @@ class ReadOnlyList(ScrollContainer):
         """
         self.logger: Logger = getLogger(__name__)
 
-        super().__init__(id=widgetId, style=style)
+        super().__init__(id=widgetId, style=style, horizontal=False, vertical=True)
 
         self._listBox: Box = Box(style=Pack(direction=COLUMN))
         self.content = self._listBox

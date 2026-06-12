@@ -68,7 +68,7 @@ class GitIssue2Todoist(App):
             else:
                 assert False, 'Not yet implemented'
 
-            self._todoistPanel = TodoistPanel()
+            self._todoistPanel = TodoistPanel(pubSubEngine=self._pubSubEngine)
 
             gitHubContainer.add(self._repositorySelector)
             gitHubContainer.add(self._milestoneGithubPanel)

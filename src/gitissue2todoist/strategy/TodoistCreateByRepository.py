@@ -21,8 +21,8 @@ from todoist_api_python.models import Task
 from gitissue2todoist.strategy.AbstractTodoistStrategy import AbstractTodoistStrategy
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
-from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectName
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 from gitissue2todoist.strategy.TodoistStrategyTypes import Tasks
 from gitissue2todoist.strategy.TodoistStrategyTypes import tasksFactory
 
@@ -68,9 +68,9 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
         projectId:         str  = self._determineTopLevelProjectId(info, progressCb)
         milestoneTaskItem: Task = self._getMilestoneTaskItem(projectId=projectId, milestoneName=info.milestoneNameTask, progressCb=progressCb)
 
-        tasks: List[GitIssueInfo] = info.tasksToClone
+        tasks: TaskInfoList = info.tasksToClone
         for taskInfo in tasks:
-            self._createTaskItem(gitIssueInfo=taskInfo, projectId=projectId, parentTaskItem=milestoneTaskItem, progressCb=progressCb)
+            self._createTaskItem(taskInfo=taskInfo, projectId=projectId, parentTaskItem=milestoneTaskItem, progressCb=progressCb)
 
         self._synchronize(progressCb)
 

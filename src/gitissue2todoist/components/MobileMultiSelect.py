@@ -23,7 +23,7 @@ class MobileMultiSelect(ScrollContainer):
     # --- Usage Example ---
 
     # 1. Create the empty widget
-    myMultiSelectList = MobileMultiSelect(style=Pack(flex=1))
+    myMultiSelectList: MobileMultiSelect = MobileMultiSelect()
 
     # 2. Populate it with initial data
     myMultiSelectList.setOptions(['Label 1', 'Label 2', 'Label 3'])
@@ -41,7 +41,6 @@ class MobileMultiSelect(ScrollContainer):
 
         self.logger: Logger = getLogger(__name__)
 
-        # This box will hold all our switches
         self._switchContainer: Box = Box(style=Pack(direction=COLUMN, margin=10))
 
         self.content = self._switchContainer

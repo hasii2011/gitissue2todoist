@@ -4,14 +4,23 @@ from logging import getLogger
 
 from toga import Box
 from toga import Button
+from toga import Divider
 from toga import Widget
+
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
-
 from gitissue2todoist.UICommon import UICommon
-from gitissue2todoist.components.ReadOnlyList import ListItems
-from gitissue2todoist.components.ReadOnlyList import ReadOnlyList
+from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IGitHubAdapter import Slug
+
+from gitissue2todoist.pubsubengine.MessageType import MessageType
+from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
+
+from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+
+DONT_JAM_ME_MARGIN: int = 20
 
 
 class TodoistPanel(Box):
@@ -19,7 +28,7 @@ class TodoistPanel(Box):
     TODO:  Once I add more code I will ask Gemini to generate me some
     documentation that I can then edit
     """
-    def __init__(self):
+    def __init__(self, pubSubEngine: IPubSubEngine):
         
         self.logger: Logger = getLogger(__name__)
 
@@ -27,32 +36,65 @@ class TodoistPanel(Box):
 
         super().__init__(style=style)
 
-        # Just provide the title, no icons or subtitles
-        items: ListItems = ListItems([
-            'hasii2011/pytrek',
-            'hasii2011/umlio',
-            'hasii2011/umlshapes',
-            'hasii2011/umlmodel',
-            'hasii2011/gitissue2todoist',
-            'hasii2011/umlextensions',
-            'hasii2011/umldiagrammer',
-            ]
-        )
-        items.sort()
-        # Without an on_select handler, tapping a row does nothing
-        self._clonedIssues: ReadOnlyList = ReadOnlyList(
-            items=items,
-            style=Pack(flex=1)
-        )
+        self._pubSubEngine:        IPubSubEngine       = pubSubEngine
+        self._clonedIssuesDisplay: ClonedIssuesDisplay = ClonedIssuesDisplay(style=Pack(flex=1))
+
         buttonContainer, createTasksButton = UICommon.createRightAlignedButton(buttonText='Create Tasks', onPressHandler=self._onCreateTasks)
 
-        buttonContainer.style.margin_right = 20  # Don't jam the button on the app right side
-        # Disabled tasks are loaded
-        self._createTasksButton: Button = createTasksButton
-        self._createTasksButton.enabled = False
+        buttonContainer.style.margin_right = DONT_JAM_ME_MARGIN
 
-        self.add(self._clonedIssues)
+        self._createTasksButton: Button = createTasksButton
+        self._createTasksButton.enabled = False             # Disabled until tasks are loaded
+
+        topDivider:    Divider = Divider(style=Pack(margin_bottom=5, margin_top=15))
+        bottomDivider: Divider = Divider(style=Pack(margin_top=5, margin_bottom=10))
+
+        self.add(topDivider)
+        self.add(self._clonedIssuesDisplay)
+        self.add(bottomDivider)
         self.add(buttonContainer)
 
+        self._pubSubEngine.subscribe(MessageType.CLONE_ISSUES, self._cloneIssuesListener)
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED,  listener=self._selectedMilestoneChangedListener)
+
+    def _cloneIssuesListener(self, cloneInformation: CloneInformation):
+        """
+
+        Args:
+            cloneInformation
+        """
+        self.logger.debug(f'Cloning: {cloneInformation=}')      # TODO: pretty print this so I can log it
+        self._clonedIssuesDisplay.clonedInformation = cloneInformation
+        self._createTasksButton.enabled = True
+
+    # noinspection PyUnusedLocal
+    def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: MilestoneTitle):
+        """
+
+        Args:
+            repositoryName:
+            milestoneTitle:
+        """
+        self._resetPanel()
+
+    # noinspection PyUnusedLocal
+    def _selectedRepositoryChangedListener(self, repositoryName: Slug):
+        """
+
+        Args:
+            repositoryName:
+
+        """
+        self._resetPanel()
+
+    # noinspection PyUnusedLocal
     def _onCreateTasks(self, widget: Widget):
-        pass
+        self._resetPanel()
+
+    def _resetPanel(self):
+        """
+        Remove clones and disables create tasks button
+        """
+        self._createTasksButton.enabled = False
+        self._clonedIssuesDisplay.clearCloneInformation()

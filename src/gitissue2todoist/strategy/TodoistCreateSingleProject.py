@@ -14,7 +14,7 @@ from gitissue2todoist.strategy.AbstractTodoistStrategy import Tasks
 from gitissue2todoist.strategy.AbstractTodoistStrategy import AbstractTodoistStrategy
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
-from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskNameMap
 
 
@@ -71,7 +71,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
             progressCb:
             projectId:
         """
-        tasks:     List[GitIssueInfo] = info.tasksToClone
+        tasks:     List[TaskInfo] = info.tasksToClone
 
         justRepoName:      str  = info.repositoryTask.split('/')[1]
         repoTaskId:        str  = self._getIdForRepoName(projectId=projectId, repoName=justRepoName)
@@ -83,7 +83,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
         milestoneId: str = milestoneTaskItem.id
         self._devTasks = self._findAllSubTasksOfMilestoneTask(projectId=projectId, milestoneId=milestoneId)
         for taskInfo in tasks:
-            self._createTaskItem(gitIssueInfo=taskInfo, projectId=projectId, parentTaskItem=milestoneTaskItem, progressCb=progressCb)
+            self._createTaskItem(taskInfo=taskInfo, projectId=projectId, parentTaskItem=milestoneTaskItem, progressCb=progressCb)
 
     def _createMileStoneTaskUnderRepoTask(self, projectId: str, repoTaskId: str, milestoneName: str, progressCb: Callable) -> Task:
         """

@@ -9,7 +9,8 @@ from abc import abstractmethod
 from dataclasses import field
 from dataclasses import dataclass
 
-MilestoneTitles = NewType('MilestoneTitles', List[str])
+MilestoneTitle  = NewType('MilestoneTitle', str)
+MilestoneTitles = NewType('MilestoneTitles', List[MilestoneTitle])
 IssueOwner      = NewType('IssueOwner',      str)
 
 

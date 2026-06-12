@@ -12,6 +12,7 @@ from httpx import HTTPStatusError
 
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
@@ -33,7 +34,7 @@ PER_PAGE_PARAMETER_NAME:     str = 'per_page'
 USER_REPOS_ENDPOINT:         URL = URL('https://api.github.com/user/repos')
 
 AUTH_TOKEN_NAME:      str = 'Bearer'
-ALL_ISSUES_INDICATOR: str = 'All'
+ALL_ISSUES_INDICATOR: MilestoneTitle = MilestoneTitle('All')
 OPEN_ISSUE_INDICATOR: str = 'open'
 
 GenericJson     = Dict[str, Any]

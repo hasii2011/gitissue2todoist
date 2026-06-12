@@ -1,7 +1,8 @@
 
 from typing import List
 
-from gitissue2todoist.strategy.TodoistStrategyTypes import GitIssueInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 
 from tests.ProjectTestBase import ProjectTestBase
 
@@ -29,13 +30,13 @@ class TodoistStrategyUnitTestBase(ProjectTestBase):
         self._cbInvoked     = True
         self._cbInvokeCount += 1
 
-    def _createTasksToClone(self) -> List[GitIssueInfo]:
-        taskList: List[GitIssueInfo] = []
+    def _createTasksToClone(self) -> TaskInfoList:
+        taskList: TaskInfoList = TaskInfoList([])
 
         taskNames: List[str] = ['TaskOpie', 'TaskGabby10Meows', 'TaskFranny']
 
         for taskName in taskNames:
-            taskInfo: GitIssueInfo = GitIssueInfo()
+            taskInfo: TaskInfo = TaskInfo()
 
             taskInfo.gitIssueName = taskName
             taskInfo.gitIssueURL  = f'https://{taskName}.org'

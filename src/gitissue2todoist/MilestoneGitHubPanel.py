@@ -67,12 +67,14 @@ class MilestoneGitHubPanel(Box):
         self.add(mileStonesBox)
         self.add(issuesBox)
 
-        self._pubSubEngine.subscribe(messageType=MessageType.LOAD_MILESTONES, listener=self._loadMilestonesListener)
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
 
         self._repositoryName: Slug = Slug('')         # set by ._loadMilestonesListener
 
-    def _loadMilestonesListener(self, repositoryName: Slug):
+    def _selectedRepositoryChangedListener(self, repositoryName: Slug):
         """
+        We need to load some new milestones
+
         Delay getting the GitHub Adapter as long as possible in case the authentication token has
         changed
 
@@ -92,6 +94,7 @@ class MilestoneGitHubPanel(Box):
 
         selection: Selection = cast(Selection, widget)
         mileStone: str = cast(str, selection.value)
-        self._pubSubEngine.sendMessage(messageType=MessageType.LOAD_ISSUES, repositoryName=self._repositoryName, milestoneTitle=mileStone)
+
+        self._pubSubEngine.sendMessage(messageType=MessageType.SELECTED_MILESTONE_CHANGED, repositoryName=self._repositoryName, milestoneTitle=mileStone)
         UICommon.popDownPicker(selection=self._mileStoneSelection)
 

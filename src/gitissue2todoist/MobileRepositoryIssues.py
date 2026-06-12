@@ -10,7 +10,11 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
-from gitissue2todoist.IRepositoryIssues import SelectedIssues
+from gitissue2todoist.IRepositoryIssues import ISSUE_DATA_KEY
+from gitissue2todoist.IRepositoryIssues import IssueData
+from gitissue2todoist.IRepositoryIssues import IssueDataRow
+from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
@@ -21,6 +25,7 @@ from gitissue2todoist.adapters.IGitHubAdapter import Slug
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
+from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 
 class MobileRepositoryIssues(Box, IRepositoryIssues):
@@ -34,32 +39,58 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         IRepositoryIssues.__init__(self, pubSubEngine=pubSubEngine)
 
         self._mobileMultiSelect: MobileMultiSelect = MobileMultiSelect()
+
         buttonContainer, cloneButton = UICommon.createRightAlignedButton(buttonText='Clone', onPressHandler=self._onClone)
 
         # Disabled until issues are selected
         self._cloneButton: Button = cloneButton
-        self._cloneButton.enabled = False
+        self._cloneButton.enabled = True
 
         self.add(self._mobileMultiSelect)
         self.add(self._cloneButton)
 
-        self._pubSubEngine.subscribe(messageType=MessageType.LOAD_ISSUES, listener=self._loadIssuesListener)
+        self._issueData: IssueData = cast(IssueData, None)     # noqa
+
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED, listener=self._selectedMilestoneChangedListener)
 
     @property
-    def selectedIssues(self) -> SelectedIssues:
+    def selectedIssues(self) -> AbbreviatedGitIssues:
         """
+        TODO:  This needs fixing for this component
+
 
         Returns: A list of selected issues (toggled ON)
         """
-        selectedValues: SelectedIssues = SelectedIssues(list(self._mobileMultiSelect.selectedValues))
 
-        return selectedValues
+        abbreviatedGitIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
 
+        for issue in self._issueData:
+            issueDataRow:        IssueDataRow = issue
+            abbreviatedGitIssue: AbbreviatedGitIssue = cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY])
+            abbreviatedGitIssues.append(abbreviatedGitIssue)
+
+        return abbreviatedGitIssues
+
+    # noinspection PyUnusedLocal
     def _onClone(self, widget):
-        pass
+        cloneInformation: CloneInformation = self._cloneSelectedIssues()
+        self._pubSubEngine.sendMessage(
+            messageType=MessageType.CLONE_ISSUES,
+            cloneInformation=cloneInformation,
+        )
 
-    def _loadIssuesListener(self, repositoryName: Slug, milestoneTitle: str):
 
-        issues = self._getAssociatedIssues(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
+    def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: str):
 
-        self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, issues)))
+        issueData: IssueData = self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
+        self.logger.info(f'{issueData=}')
+
+        values: MultiSelectValues = MultiSelectValues([])
+
+        for issue in issueData:
+            issueDataRow: IssueDataRow = issue
+            values.append(cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY]).issueTitle)
+
+        self._issueData = issueData
+        self.logger.info(f'values=')
+        self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, values)))

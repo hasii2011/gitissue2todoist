@@ -3,5 +3,6 @@ from enum import StrEnum
 
 class MessageType(StrEnum):
 
-    LOAD_MILESTONES = 'Load Milestones'
-    LOAD_ISSUES     = 'Load Issues'
+    SELECTED_REPOSITORY_CHANGED = 'Selected Repository Changed'
+    SELECTED_MILESTONE_CHANGED  = 'Selected Milestone Changed'
+    CLONE_ISSUES                 = 'Clone Issues'
