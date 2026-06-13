@@ -1,4 +1,3 @@
-
 from typing import cast
 
 from logging import Logger
@@ -18,6 +17,8 @@ from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
+from gitissue2todoist.components.MobileMultiSelect import ItemSelectCallback
+from gitissue2todoist.components.MobileMultiSelect import ItemDeselectCallback
 
 from gitissue2todoist.UICommon import UICommon
 
@@ -38,13 +39,16 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         super().__init__(style=style)
         IRepositoryIssues.__init__(self, pubSubEngine=pubSubEngine)
 
-        self._mobileMultiSelect: MobileMultiSelect = MobileMultiSelect()
+        self._mobileMultiSelect: MobileMultiSelect = MobileMultiSelect(
+            itemSelectCallback=self._itemSelectedCallback,
+            itemDeselectCallback=self._itemDeselectedCallback
+        )
 
         buttonContainer, cloneButton = UICommon.createRightAlignedButton(buttonText='Clone', onPressHandler=self._onClone)
 
         # Disabled until issues are selected
         self._cloneButton: Button = cloneButton
-        self._cloneButton.enabled = True
+        self._cloneButton.enabled = False
 
         self.add(self._mobileMultiSelect)
         self.add(self._cloneButton)
@@ -78,6 +82,15 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
             messageType=MessageType.CLONE_ISSUES,
             cloneInformation=cloneInformation,
         )
+
+    def _itemSelectedCallback(self) -> None:
+        self.logger.debug(f'An item was selected')
+        self._cloneButton.enabled = True
+
+    def _itemDeselectedCallback(self, hasNoSelections: bool) -> None:
+        self.logger.debug(f'An item was deselected | hasNoSelections: {hasNoSelections}')
+        if hasNoSelections:
+            self._cloneButton.enabled = False
 
 
     def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: str):

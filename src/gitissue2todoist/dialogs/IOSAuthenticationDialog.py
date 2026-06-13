@@ -47,11 +47,12 @@ class IOSAuthenticationDialog(IAuthenticationDialog):
         assert App.app is not None, 'I know what i am doing'
         app: App = App.app
         
-        assert app.main_window is not None
-        assert not isinstance(app.main_window, str)
-        
-        # Cast explicitly to satisfy PyCharm's static type checker
-        mainWindow: Window = cast(Window, app.main_window)
+        # Bind to a local variable so PyCharm respects type narrowing (it ignores asserts on properties)
+        _win = app.main_window
+        assert _win is not None
+        assert isinstance(_win, Window)
+
+        mainWindow: Window = _win
         
         originalContent: Box = cast(Box, mainWindow.content)
         

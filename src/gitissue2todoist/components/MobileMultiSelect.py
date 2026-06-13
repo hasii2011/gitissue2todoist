@@ -2,6 +2,8 @@
 from typing import List
 from typing import NewType
 
+from collections.abc import Callable
+
 from logging import Logger
 from logging import getLogger
 
@@ -15,6 +17,9 @@ from toga.style.pack import COLUMN
 SwitchWidgets     = NewType('SwitchWidgets', List[Switch])
 MultiSelectValues = NewType('MultiSelectValues', List[str])
 SelectedValues    = NewType('SelectedValues', List[str])
+
+ItemSelectCallback   = Callable[[], None]
+ItemDeselectCallback = Callable[[bool], None]
 
 class MobileMultiSelect(ScrollContainer):
     """
@@ -35,8 +40,15 @@ class MobileMultiSelect(ScrollContainer):
     currentSelections = myMultiSelectList.selectedItems
 
     """
-    def __init__(self, **kwargs):
+    def __init__(self, itemSelectCallback: ItemSelectCallback, itemDeselectCallback: ItemDeselectCallback, **kwargs):
+        """
+        Initializes the MobileMultiSelect container with strict callbacks for selection events.
 
+        Args:
+            itemSelectCallback (ItemSelectCallback): Callback invoked without parameters whenever an item is selected (toggled ON).
+            itemDeselectCallback (ItemDeselectCallback): Callback invoked whenever an item is deselected (toggled OFF). It receives a boolean parameter that is True if there are absolutely no items left selected, and False otherwise.
+            **kwargs: Additional keyword arguments passed directly to the parent ScrollContainer.
+        """
         super().__init__(style=Pack(flex=1), **kwargs)
 
         self.logger: Logger = getLogger(__name__)
@@ -46,6 +58,16 @@ class MobileMultiSelect(ScrollContainer):
         self.content = self._switchContainer
 
         self._switchWidgets: SwitchWidgets = SwitchWidgets([])
+
+        self._itemSelectCallback:   ItemSelectCallback   = itemSelectCallback
+        self._itemDeselectCallback: ItemDeselectCallback = itemDeselectCallback
+
+    def _switchChangedHandler(self, widget: Switch) -> None:
+        if widget.value:
+            self._itemSelectCallback()
+        else:
+            hasNoSelections: bool = (len(self.selectedValues) == 0)
+            self._itemDeselectCallback(hasNoSelections)
 
     @property
     def selectedValues(self) -> SelectedValues:
@@ -81,7 +103,8 @@ class MobileMultiSelect(ScrollContainer):
         for itemText in values:
             selectionSwitch: Switch = Switch(
                 text=itemText,
-                style=Pack(margin=5)
+                style=Pack(margin=5),
+                on_change=self._switchChangedHandler
             )
             self._switchWidgets.append(selectionSwitch)
             self._switchContainer.add(selectionSwitch)

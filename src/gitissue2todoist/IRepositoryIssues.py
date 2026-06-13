@@ -110,7 +110,8 @@ class IRepositoryIssues(ABC):
 
         for abbreviatedGitIssue in abbreviatedGitIssues:
 
-            simpleGitIssue: AbbreviatedGitIssue = cast(AbbreviatedGitIssue, abbreviatedGitIssue)
+            simpleGitIssue: AbbreviatedGitIssue = abbreviatedGitIssue
+
             taskInfo: TaskInfo = TaskInfo()
             taskInfo.gitIssueName = simpleGitIssue.issueTitle
             taskInfo.gitIssueURL  = simpleGitIssue.issueHTMLURL
