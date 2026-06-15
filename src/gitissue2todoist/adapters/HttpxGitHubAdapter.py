@@ -22,7 +22,7 @@ from gitissue2todoist.adapters.IGitHubAdapter import IssuesCallback
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 
-from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.GitHubServiceUnavailableError import GitHubServiceUnavailableError
 

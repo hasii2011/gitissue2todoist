@@ -17,7 +17,7 @@ from toga.style.pack import COLUMN
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
-from gitissue2todoist.adapters.AdapterAuthenticationError import AdapterAuthenticationError
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter

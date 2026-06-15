@@ -5,4 +5,6 @@ class MessageType(StrEnum):
 
     SELECTED_REPOSITORY_CHANGED = 'Selected Repository Changed'
     SELECTED_MILESTONE_CHANGED  = 'Selected Milestone Changed'
-    CLONE_ISSUES                 = 'Clone Issues'
+    CLONE_ISSUES                = 'Clone Issues'
+
+    TASK_CREATION_COMPLETE      = 'Task Creation Complete'
