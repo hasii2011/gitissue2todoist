@@ -16,6 +16,7 @@ from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCre
 from gitissue2todoist.Preferences import Preferences
 
 UNAUTHORIZED_CODE: int = 401
+FORBIDDEN_CODE:    int = 403
 AUTHORIZED_FAILED: str = 'Authorization to todoist API failed.  Perhaps, the authorization token is invalid'
 
 class TodoistCreation:
@@ -38,7 +39,7 @@ class TodoistCreation:
             self._taskCreationStrategy.createTasks(info=info, progressCb=progressCb)
         except HTTPStatusError as e:
             self.logger.error(f'{e}')
-            if e.response.status_code == UNAUTHORIZED_CODE:
+            if e.response.status_code == UNAUTHORIZED_CODE or e.response.status_code == FORBIDDEN_CODE:
                 raise AdapterAuthenticationError(AUTHORIZED_FAILED) from e
             else:
                 raise e

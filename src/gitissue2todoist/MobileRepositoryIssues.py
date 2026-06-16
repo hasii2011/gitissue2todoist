@@ -17,8 +17,6 @@ from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
-from gitissue2todoist.components.MobileMultiSelect import ItemSelectCallback
-from gitissue2todoist.components.MobileMultiSelect import ItemDeselectCallback
 
 from gitissue2todoist.UICommon import UICommon
 

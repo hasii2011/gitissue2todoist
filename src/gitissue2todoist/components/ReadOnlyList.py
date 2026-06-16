@@ -70,7 +70,7 @@ class ReadOnlyList(ScrollContainer):
                 divider: Divider = Divider()
                 self._listBox.add(divider)
 
-    items = property(fset=_setItems, doc="Write-only property to set the items in the list.")
+    items = property(fset=_setItems, doc='Write-only property to set the items in the list.')
 
     def clearItems(self) -> None:
         """

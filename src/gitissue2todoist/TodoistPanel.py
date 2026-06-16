@@ -1,20 +1,27 @@
 
+from typing import cast
+
 from logging import Logger
 from logging import getLogger
-from typing import cast
+
 
 from toga import Box
 from toga import Button
 from toga import Divider
 from toga import ErrorDialog
 from toga import Widget
+from toga import Position as TogaPosition
 
 from toga.style import Pack
 
 from toga.style.pack import COLUMN
 
+from codeallybasic.Position import Position
+
+from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
+from gitissue2todoist.dialogs.ProgressDialog import ProgressDialog
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.adapters.ErrorHandler import ErrorHandler
@@ -47,6 +54,7 @@ class TodoistPanel(Box):
         super().__init__(style=style)
 
         self._pubSubEngine:        IPubSubEngine       = pubSubEngine
+        self._preferences:         Preferences         = Preferences()
         self._clonedIssuesDisplay: ClonedIssuesDisplay = ClonedIssuesDisplay(style=Pack(flex=1))
 
         buttonContainer, createTasksButton = UICommon.createRightAlignedButton(
@@ -73,6 +81,7 @@ class TodoistPanel(Box):
 
         self._todoistCreation:  TodoistCreation  = TodoistCreation()
         self._cloneInformation: CloneInformation = cast(CloneInformation, None)     # noqa
+        self._progressDlg:      ProgressDialog   = cast(ProgressDialog, None)       # noqa
 
     def _cloneIssuesListener(self, cloneInformation: CloneInformation):
         """
@@ -107,20 +116,34 @@ class TodoistPanel(Box):
 
     # noinspection PyUnusedLocal
     async def _onCreateTasks(self, widget: Widget):
-        # Legacy code follows
-        #
-        # dlg: ProgressDialog   = self._setupProgressDialog()       # TODO:
-        ci:  CloneInformation = self._cloneInformation
+
+        from asyncio import AbstractEventLoop
+        from asyncio import get_running_loop
+        from asyncio import to_thread
+        from functools import partial
+
+        self._progressDlg = self._setupProgressDialog()
+
+        ci:                CloneInformation  = self._cloneInformation
+        # Capture the Main Event Loop BEFORE leaving the main thread
+        loop:              AbstractEventLoop = get_running_loop()
+
+        def _threadSafeCallback(msg: str):
+            self.logger.info(f'{msg}')
+            # Use the captured loop reference
+            loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
 
         try:
-
-            self._todoistCreation.createTasks(info=ci, progressCb=self._adapterCallback)
-            # self._progressDlg.Destroy()                   TODO:
+            # Run heavy synchronous task creation in a background thread so the GUI does not freeze
+            await to_thread(
+                partial(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
+            )
+            self._progressDlg.destroy()
         except AdapterAuthenticationError as e:
-            # self._progressDlg.Destroy()                   TODO:
+            self._progressDlg.destroy()
             self._handleAuthenticationError()
         except (TaskCreationError, NoteCreationError) as tce:
-            #  self._progressDlg.Destroy()   TODO:
+            self._progressDlg.destroy()
             errorHandler: ErrorHandler = ErrorHandler(widget)
 
             if errorHandler.isErrorHandled(tce.errorCode):
@@ -133,7 +156,6 @@ class TodoistPanel(Box):
                     message=tce.message
                 )
                 await self._showDialog(dialog=dlg)
-
         except Exception as ue:
             # This path was manually verified when I was missing the _todoistCreation
             message: str = str(ue)
@@ -172,10 +194,18 @@ class TodoistPanel(Box):
 
         self._cloneInformation = cast(CloneInformation, None)  # noqa
 
-    def _adapterCallback(self, statusMsg: str):
-        # self._updateDialog(newMsg=statusMsg)   TODO:
-        self.logger.info(f'{statusMsg}')
-
     def _handleAuthenticationError(self):
         # TODO:   Pop up dialog for new authorization token
         pass
+
+    def _setupProgressDialog(self) -> ProgressDialog:
+
+        dlg: ProgressDialog = ProgressDialog('Creating Todoist Tasks...')
+
+        position: Position = self._preferences.progressDialogPosition
+
+        dlg.position = TogaPosition(x=position.x, y=position.y)
+
+        dlg.show()
+
+        return dlg
