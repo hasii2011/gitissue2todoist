@@ -21,8 +21,17 @@ class IAuthenticationDialog(ABC):
     def _createDialogContent(self) -> Box:
         pass
 
+    @property
     @abstractmethod
-    def _onSave(self, widget):
+    def apiToken(self) -> str:
+        """
+        Returns the entered API token. 
+        Only valid if showDialog() returned True.
+        """
+        pass
+
+    @abstractmethod
+    def _onOk(self, widget):
         pass
 
     @abstractmethod

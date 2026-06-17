@@ -115,8 +115,14 @@ class TodoistPanel(Box):
         self._resetPanel()
 
     # noinspection PyUnusedLocal
-    async def _onCreateTasks(self, widget: Widget):
+    async def x(self, widget: Widget):
+        """
+        Use local imports here to hide to the multi-thread magic in combination with
+        the toga UI event loop machinations were are doing!!!
+        Args:
+            widget:
 
+        """
         from asyncio import AbstractEventLoop
         from asyncio import get_running_loop
         from asyncio import to_thread
@@ -134,40 +140,55 @@ class TodoistPanel(Box):
             loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
 
         try:
-            # Run heavy synchronous task creation in a background thread so the GUI does not freeze
+            # Run heavy synchronous task creation in a background
+            # thread so the GUI does not freeze
             await to_thread(
                 partial(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
             )
-            self._progressDlg.destroy()
-        except AdapterAuthenticationError as e:
-            self._progressDlg.destroy()
+        except AdapterAuthenticationError:
             self._handleAuthenticationError()
+            
         except (TaskCreationError, NoteCreationError) as tce:
-            self._progressDlg.destroy()
-            errorHandler: ErrorHandler = ErrorHandler(widget)
-
-            if errorHandler.isErrorHandled(tce.errorCode):
-                await errorHandler.handleError(tce.message, tce.errorCode)
-            else:
-                # booBoo: MessageDialog = MessageDialog(parent=None, message=tce.message, caption='Task Creation Error!', style=OK | ICON_ERROR)
-                # booBoo.ShowModal()
-                dlg: ErrorDialog = ErrorDialog(
-                    title='Task Creation Error!',
-                    message=tce.message
-                )
-                await self._showDialog(dialog=dlg)
+            await self._handleTaskCreationError(error=tce, widget=widget)
+            
         except Exception as ue:
-            # This path was manually verified when I was missing the _todoistCreation
-            message: str = str(ue)
-
-            dlg = ErrorDialog(
-                title='General Error!',
-                message=message
-            )
-            await self._showDialog(dialog=dlg)
+            await self._handleGeneralError(error=ue)
+            
         finally:
+            # Guarantee the dialog is destroyed
+            self._progressDlg.destroy()
             self._resetPanel()
             self._pubSubEngine.sendMessage(messageType=MessageType.TASK_CREATION_COMPLETE)
+
+    async def _handleTaskCreationError(self, widget: Widget, error):
+        """
+        Encapsulates the complex logic of resolving known task errors
+
+        Args:
+            widget:
+            error:
+
+        """
+        errorHandler: ErrorHandler = ErrorHandler(widget)
+
+        if errorHandler.isErrorHandled(error.errorCode):
+            await errorHandler.handleError(error.message, error.errorCode)
+        else:
+            dlg: ErrorDialog = ErrorDialog(
+                title='Task Creation Error!',
+                message=error.message
+            )
+            await self._showDialog(dialog=dlg)
+
+    async def _handleGeneralError(self, error: Exception):
+        """Handles any unpredicted, catastrophic failures"""
+        message: str = str(error)
+
+        dlg: ErrorDialog = ErrorDialog(
+            title='General Error!',
+            message=message
+        )
+        await self._showDialog(dialog=dlg)
 
     async def _showDialog(self, dialog: ErrorDialog):
         """

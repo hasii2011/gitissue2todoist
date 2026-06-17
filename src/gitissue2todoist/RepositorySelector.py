@@ -16,10 +16,13 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
+
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
+
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.Preferences import Preferences
+
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
@@ -85,20 +88,45 @@ class RepositorySelector(Box):
 
     async def _handleAuthenticationError(self):
 
-        if sysPlatform == AppCommon.PLATFORM_IOS:
-            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(preferences=self._preferences)
-        elif sysPlatform == AppCommon.PLATFORM_MAC:
-            authDialog = AuthenticationDialog(preferences=self._preferences)
-        else:
-            assert False, 'Unsupported platform'
+        authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
 
         okPressed: bool = await authDialog.showDialog()
         
         if okPressed:
+            # Save the new token into preferences
+            self._preferences.gitHubAPIToken = authDialog.apiToken
             # Re-initialize the adapter with the new token
             self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
             # Try again!
             await self.loadRepositoriesSelectionList()
+
+
+    async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
+        """
+
+        Returns:  The platform specific dialog
+        """
+
+        dialogTitle:   str = 'GitHub Authentication'
+        dialogMessage: str = 'Authentication Failed. Please enter your GitHub API Token:'
+        initialToken:  str = self._preferences.gitHubAPIToken
+
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=initialToken
+            )
+        elif sysPlatform == AppCommon.PLATFORM_MAC:
+            authDialog = AuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=initialToken
+            )
+        else:
+            assert False, 'Unsupported platform'
+
+        return authDialog
 
     async def _handleGitHubConnectionError(self):
         #
@@ -109,3 +137,4 @@ class RepositorySelector(Box):
         await self.window.dialog(
             dialog=ErrorDialog(title='Error', message='GitHub connection error. Try again later')
         )
+

@@ -14,7 +14,6 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
-from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
 
@@ -22,14 +21,14 @@ class AuthenticationDialog(Window, IAuthenticationDialog):
     """
     A traditional secondary Window acting as a dialog.
     """
-    def __init__(self, preferences: Preferences):
+    def __init__(self, title: str, message: str, initialToken: str = ''):
 
-        super().__init__(title="GitHub Authentication")
+        super().__init__(title=title)
 
         self.logger:       Logger                = getLogger(__name__)
-        self._preferences: Preferences           = preferences
+        self._message:     str                   = message
         self._future:      asyncio.Future | None = None
-        self._tokenInput:  TextInput             = TextInput(value=self._preferences.gitHubAPIToken, style=Pack(flex=1))
+        self._tokenInput:  TextInput             = TextInput(value=initialToken, style=Pack(flex=1))
 
         self.content = self._createDialogContent()
 
@@ -46,16 +45,20 @@ class AuthenticationDialog(Window, IAuthenticationDialog):
         result: bool = await self._future
         return result
 
+    @property
+    def apiToken(self) -> str:
+        return self._tokenInput.value
+
     def _createDialogContent(self) -> Box:
 
-        saveButton:   Button = Button('Save', on_press=self._onSave, style=Pack(margin=5))
+        okButton:     Button = Button('OK', on_press=self._onOk, style=Pack(margin=5))
         cancelButton: Button = Button('Cancel', on_press=self._onCancel, style=Pack(margin=5))
 
-        buttonBox: Box = Box(children=[saveButton, cancelButton], style=Pack(direction=ROW, margin_top=10))
+        buttonBox: Box = Box(children=[okButton, cancelButton], style=Pack(direction=ROW, margin_top=10))
 
         authBox: Box = Box(
             children=[
-                Label('Authentication Failed. Please enter your GitHub API Token:', style=Pack(margin_bottom=5)),
+                Label(self._message, style=Pack(margin_bottom=5)),
                 self._tokenInput,
                 buttonBox
             ],
@@ -64,8 +67,7 @@ class AuthenticationDialog(Window, IAuthenticationDialog):
         return authBox
 
     # noinspection PyUnusedLocal
-    def _onSave(self, widget):
-        self._preferences.gitHubAPIToken = self._tokenInput.value
+    def _onOk(self, widget):
         self.close()
         if self._future and not self._future.done():
             self._future.set_result(True)
