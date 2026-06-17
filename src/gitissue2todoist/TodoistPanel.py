@@ -18,6 +18,13 @@ from toga.style.pack import COLUMN
 
 from codeallybasic.Position import Position
 
+from sys import platform as sysPlatform
+
+from gitissue2todoist.AppCommon import AppCommon
+from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
+from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
+from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
+
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
@@ -110,55 +117,70 @@ class TodoistPanel(Box):
 
         Args:
             repositoryName:
-
         """
         self._resetPanel()
 
-    # noinspection PyUnusedLocal
-    async def x(self, widget: Widget):
+    async def _onCreateTasks(self, widget: Widget):
         """
-        Use local imports here to hide to the multi-thread magic in combination with
-        the toga UI event loop machinations were are doing!!!
+        Executes the task creation process. This uses a while loop for retries 
+        (e.g., prompting for a new API token upon authentication failure) 
+        rather than recursion, avoiding iOS strictly enforced view hierarchy crashes.
+        
+        Use local imports to hide to the multi-thread magic and
+        the toga UI event loop machinations
         Args:
             widget:
-
         """
         from asyncio import AbstractEventLoop
         from asyncio import get_running_loop
         from asyncio import to_thread
         from functools import partial
 
-        self._progressDlg = self._setupProgressDialog()
+        ci:   CloneInformation  = self._cloneInformation
+        loop: AbstractEventLoop = get_running_loop()
 
-        ci:                CloneInformation  = self._cloneInformation
-        # Capture the Main Event Loop BEFORE leaving the main thread
-        loop:              AbstractEventLoop = get_running_loop()
+        while True:
+            # We instantiate this every time so it grabs the freshest API token
+            self._todoistCreation = TodoistCreation()
+            self._progressDlg     = self._setupProgressDialog()
 
-        def _threadSafeCallback(msg: str):
-            self.logger.info(f'{msg}')
-            # Use the captured loop reference
-            loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
+            def _threadSafeCallback(msg: str):
+                self.logger.info(f'{msg}')
+                loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
 
-        try:
-            # Run heavy synchronous task creation in a background
-            # thread so the GUI does not freeze
-            await to_thread(
-                partial(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
-            )
-        except AdapterAuthenticationError:
-            self._handleAuthenticationError()
-            
-        except (TaskCreationError, NoteCreationError) as tce:
-            await self._handleTaskCreationError(error=tce, widget=widget)
-            
-        except Exception as ue:
-            await self._handleGeneralError(error=ue)
-            
-        finally:
-            # Guarantee the dialog is destroyed
-            self._progressDlg.destroy()
-            self._resetPanel()
-            self._pubSubEngine.sendMessage(messageType=MessageType.TASK_CREATION_COMPLETE)
+            try:
+                # Execute task creation in a background thread; We don't need a frozen UI
+                await to_thread(
+                    partial(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
+                )
+                self._progressDlg.destroy()
+                break  # Exit loop on success
+                
+            except AdapterAuthenticationError:
+                self._progressDlg.destroy()
+                
+                authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
+                okPressed: bool = await authDialog.showDialog()
+                
+                if okPressed:
+                    # Save the new token into preferences and retry the loop
+                    self._preferences.todoistAPIToken = authDialog.apiToken
+                    continue
+                else:
+                    break  # User canceled, exit loop
+                    
+            except (TaskCreationError, NoteCreationError) as tce:
+                self._progressDlg.destroy()
+                await self._handleTaskCreationError(error=tce, widget=widget)
+                break
+                
+            except Exception as ue:
+                self._progressDlg.destroy()
+                await self._handleGeneralError(error=ue)
+                break
+
+        self._resetPanel()
+        self._pubSubEngine.sendMessage(messageType=MessageType.TASK_CREATION_COMPLETE)
 
     async def _handleTaskCreationError(self, widget: Widget, error):
         """
@@ -167,7 +189,6 @@ class TodoistPanel(Box):
         Args:
             widget:
             error:
-
         """
         errorHandler: ErrorHandler = ErrorHandler(widget)
 
@@ -181,7 +202,9 @@ class TodoistPanel(Box):
             await self._showDialog(dialog=dlg)
 
     async def _handleGeneralError(self, error: Exception):
-        """Handles any unpredicted, catastrophic failures"""
+        """
+        Handles any unpredicted, catastrophic failures
+        """
         message: str = str(error)
 
         dlg: ErrorDialog = ErrorDialog(
@@ -197,9 +220,7 @@ class TodoistPanel(Box):
 
         Args:
             dialog:
-
         """
-
         _win = self.window
         if _win is not None:
             await _win.dialog(dialog)
@@ -215,18 +236,39 @@ class TodoistPanel(Box):
 
         self._cloneInformation = cast(CloneInformation, None)  # noqa
 
-    def _handleAuthenticationError(self):
-        # TODO:   Pop up dialog for new authorization token
-        pass
+    async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
+        """
+
+        Returns:  The platform specific dialog
+        """
+
+        dialogTitle:   str = 'Todoist Authentication'
+        dialogMessage: str = 'Authentication Failed. Please enter your Todoist API Token:'
+        initialToken:  str = self._preferences.todoistAPIToken
+
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=initialToken
+            )
+        elif sysPlatform == AppCommon.PLATFORM_MAC:
+            authDialog = AuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=initialToken
+            )
+        else:
+            assert False, 'Unsupported platform'
+
+        return authDialog
 
     def _setupProgressDialog(self) -> ProgressDialog:
 
-        dlg: ProgressDialog = ProgressDialog('Creating Todoist Tasks...')
-
-        position: Position = self._preferences.progressDialogPosition
+        dlg:      ProgressDialog = ProgressDialog('Creating Todoist Tasks...')
+        position: Position       = self._preferences.progressDialogPosition
 
         dlg.position = TogaPosition(x=position.x, y=position.y)
-
         dlg.show()
 
         return dlg

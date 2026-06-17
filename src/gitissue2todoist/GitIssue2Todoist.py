@@ -1,6 +1,7 @@
 from typing import cast
 
 import logging.config
+from logging import shutdown as loggingShutdown
 
 from json import load as jsonLoad
 
@@ -86,9 +87,9 @@ class GitIssue2Todoist(App):
             traceback.print_exc()
             raise e
 
-    # noinspection PyUnusedLocal
-    def _actionExit(self, widget, **kwargs) -> None:
-        self.exit()
+    def on_exit(self) -> bool:
+        loggingShutdown()
+        return True
 
     async def on_running(self):
         await self._repositorySelector.loadRepositoriesSelectionList()
