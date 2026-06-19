@@ -41,6 +41,7 @@ ProjectDataTypes = Union[Items, Project, ProjectNotes, Sections]
 
 ProjectData = NewType('ProjectData', Dict[str, ProjectDataTypes])
 
+INVALID_PROJECT_ID: str = 'Invalid Project ID'
 
 class TodoistCreateByRepository(AbstractTodoistStrategy):
     """
@@ -61,7 +62,7 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
             info:  The cloned information
             progressCb: A progress callback to return status
         """
-        self.logger.info(f'{progressCb.__name__} - {info=}')
+        self.logger.debug(f'{progressCb.__name__} - {info=}')
 
         progressCb('Starting')
 
@@ -85,9 +86,13 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
 
         Returns:  An appropriate parent ID for newly created tasks
         """
+        assert info.repositoryTask is not None, 'Developer Error: The repository task must be set prior to cloning.'
+
         self._projectDictionary = self._getCurrentProjects()
 
+        self.logger.info(f'{info.repositoryTask=}')
         justRepoName: str = info.repositoryTask.split('/')[1]
+
         projectId:    str = self._getProjectId(projectName=ProjectName(justRepoName), projectDictionary=self._projectDictionary)
 
         progressCb(f'Added {justRepoName}')

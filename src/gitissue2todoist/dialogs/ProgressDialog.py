@@ -1,3 +1,4 @@
+
 from typing import Tuple
 
 from toga import App
@@ -10,12 +11,14 @@ from toga import Window
 from toga.style import Pack
 from toga.style.pack import COLUMN, CENTER
 
+from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
+
 LABEL_MARGIN_BOTTOM: int             = 10
 PROGRESS_BAR_WIDTH:  int             = 250
 PROGRESS_BOX_MARGIN: int             = 20
 WINDOW_SIZE:         Tuple[int, int] = (300, 100)
 
-class ProgressDialog:
+class ProgressDialog(IProgressDialog):
     """
     A desktop-compatible Progress Dialog overlay for Toga applications.
 
@@ -60,7 +63,7 @@ class ProgressDialog:
 
     position = property(fset=_setPosition, doc='Write-only property to set the position of the dialog.')
 
-    def show(self) -> None:
+    def showDialog(self) -> None:
         """
         Displays the secondary progress window and starts the progress bar animation.
         

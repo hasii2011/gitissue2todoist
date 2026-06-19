@@ -34,6 +34,8 @@ IssueData = NewType('IssueData', List[IssueDataRow])
 ISSUE_TITLE_KEY: IssueKey = IssueKey('issue')
 ISSUE_DATA_KEY:  IssueKey = IssueKey('abbreviatedGitIssue')
 
+REPOSITORY_NAME_NOT_SET: Slug = Slug('REMEMBER_TO_TRACK_THE_CURRENT_REPOSITORY_NAME')
+
 class IRepositoryIssues(ABC):
 
     def __init__(self, pubSubEngine: IPubSubEngine):

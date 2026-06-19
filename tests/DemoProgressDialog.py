@@ -36,7 +36,7 @@ class DemoProgressDialog(toga.App):
         
         # 1. Instantiate and show the popup overlay
         progressDialog: ProgressDialog = ProgressDialog('Cloning Tasks...')
-        progressDialog.show()
+        progressDialog.showDialog()
         
         try:
             # 2. Simulate multistep heavy work (e.g. cloning 10 tasks)

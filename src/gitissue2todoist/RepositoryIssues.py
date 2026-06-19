@@ -17,6 +17,7 @@ from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
 from gitissue2todoist.IRepositoryIssues import ISSUE_DATA_KEY
 from gitissue2todoist.IRepositoryIssues import ISSUE_TITLE_KEY
 from gitissue2todoist.IRepositoryIssues import IssueData
+from gitissue2todoist.IRepositoryIssues import REPOSITORY_NAME_NOT_SET
 
 from gitissue2todoist.UICommon import UICommon
 
@@ -59,6 +60,8 @@ class RepositoryIssues(Box, IRepositoryIssues):
         self.add(buttonContainer)
 
         self._selectionTable.on_select = self._onSelectionChanged
+
+        self._repositoryName: Slug = REPOSITORY_NAME_NOT_SET
 
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED,  listener=self._selectedMilestoneChangedListener)
@@ -108,17 +111,7 @@ class RepositoryIssues(Box, IRepositoryIssues):
     # noinspection PyUnusedLocal
     def _onClone(self, widget):
 
-        # selectedIssues: AbbreviatedGitIssues = self.selectedIssues
-
         cloneInformation: CloneInformation = self._cloneSelectedIssues()
-
-        # cloneInformation: CloneInformation = CloneInformation()
-        # cloneInformation.repositoryTask    = self._repositoryName
-        # cloneInformation.milestoneNameTask = self._milestoneTitle
-        #
-        # tasksToClone: TaskInfoList = self._convertToTasksToClone(abbreviatedGitIssues=selectedIssues)
-        #
-        # cloneInformation.tasksToClone = tasksToClone
 
         self._pubSubEngine.sendMessage(
             messageType=MessageType.CLONE_ISSUES,

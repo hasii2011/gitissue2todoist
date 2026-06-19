@@ -4,6 +4,7 @@ from typing import cast
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
 
 from toga import Box
 from toga import Button
@@ -18,8 +19,6 @@ from toga.style.pack import COLUMN
 
 from codeallybasic.Position import Position
 
-from sys import platform as sysPlatform
-
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
@@ -28,6 +27,8 @@ from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDi
 from gitissue2todoist.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
+from gitissue2todoist.dialogs.IOSProgressDialog import IOSProgressDialog
+from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
 from gitissue2todoist.dialogs.ProgressDialog import ProgressDialog
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
@@ -88,7 +89,7 @@ class TodoistPanel(Box):
 
         self._todoistCreation:  TodoistCreation  = TodoistCreation()
         self._cloneInformation: CloneInformation = cast(CloneInformation, None)     # noqa
-        self._progressDlg:      ProgressDialog   = cast(ProgressDialog, None)       # noqa
+        self._progressDlg:      IProgressDialog  = cast(IProgressDialog, None)       # noqa
 
     def _cloneIssuesListener(self, cloneInformation: CloneInformation):
         """
@@ -263,12 +264,23 @@ class TodoistPanel(Box):
 
         return authDialog
 
-    def _setupProgressDialog(self) -> ProgressDialog:
+    def _setupProgressDialog(self) -> IProgressDialog:
+        """
 
-        dlg:      ProgressDialog = ProgressDialog('Creating Todoist Tasks...')
-        position: Position       = self._preferences.progressDialogPosition
+        Returns:  The platform specific dialog
+        """
+        commonTitle: str = 'Creating Todoist Tasks...'
+        if sysPlatform == AppCommon.PLATFORM_MAC:
 
-        dlg.position = TogaPosition(x=position.x, y=position.y)
-        dlg.show()
+            dlg:      IProgressDialog = ProgressDialog(title=commonTitle)
+            position: Position       = self._preferences.progressDialogPosition
+
+            dlg.position = TogaPosition(x=position.x, y=position.y)
+        elif sysPlatform == AppCommon.PLATFORM_IOS:
+            dlg  = IOSProgressDialog(title=commonTitle)
+        else:
+            assert False, 'Unsupported platform'
+
+        dlg.showDialog()
 
         return dlg

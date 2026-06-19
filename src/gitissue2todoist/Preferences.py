@@ -2,13 +2,13 @@
 from logging import Logger
 from logging import getLogger
 
-from pathlib import Path
-
-from toga import App
+from codeallybasic.IConfigurationLocator import IConfigurationLocator
+from codeallybasic.ConfigurationLocator import ConfigurationLocator
 
 from codeallybasic.Position import Position
 from codeallybasic.Dimensions import Dimensions
 from codeallybasic.SingletonV3 import SingletonV3
+
 from codeallybasic.DynamicConfiguration import DynamicConfiguration
 from codeallybasic.DynamicConfiguration import KeyName
 from codeallybasic.DynamicConfiguration import SectionName
@@ -17,6 +17,9 @@ from codeallybasic.DynamicConfiguration import ValueDescription
 from codeallybasic.DynamicConfiguration import ValueDescriptions
 from codeallybasic.SecureConversions import SecureConversions
 
+from toga import App
+
+from gitissue2todoist.TogaConfigurationLocator import TogaConfigurationLocator
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
 from gitissue2todoist.general.ResourceManager import ResourceManager
@@ -46,7 +49,6 @@ SECTION_MAIN: ValueDescriptions = ValueDescriptions(
 SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
     {
         KeyName('gitHubAPIToken'):     ValueDescription(defaultValue='Put Your GitHub API Token Here'),
-        KeyName('gitHubUserName'):     ValueDescription(defaultValue='Put Your GitHub User Name Here'),
         KeyName('maxReposToRetrieve'): ValueDescription(defaultValue=DEFAULT_MAX_REPOS, deserializer=SecureConversions.secureInteger),
         KeyName('gitHubURLOption'):    ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
     }
@@ -56,9 +58,13 @@ TODOIST_SECTION: ValueDescriptions = ValueDescriptions(
     {
         KeyName('todoistAPIToken'):      ValueDescription(defaultValue='Put Your Todoist API Token Here'),
         KeyName('cleanTodoistCache'):    ValueDescription(defaultValue='True', deserializer=SecureConversions.secureBoolean),
-        KeyName('singleTodoistProject'): ValueDescription(defaultValue='True', deserializer=SecureConversions.secureBoolean),
         KeyName('todoistProjectName'):   ValueDescription(defaultValue=DEFAULT_TODOIST_PROJECT_NAME),
         KeyName('taskCreationStrategy'): ValueDescription(defaultValue=DEFAULT_TASK_CREATION_STRATEGY, deserializer=TodoistTaskCreationStrategy, enumUseValue=True),
+    }
+)
+DEBUG_SECTION: ValueDescriptions = ValueDescriptions(
+    {
+        KeyName('debugMobileIssueSelector'): ValueDescription(defaultValue='False', deserializer=SecureConversions.secureBoolean),
     }
 )
 
@@ -67,6 +73,7 @@ CONFIGURATION_SECTIONS: Sections = Sections(
         SectionName('Main'):    SECTION_MAIN,
         SectionName('GitHub'):  SECTION_GITHUB,
         SectionName('Todoist'): TODOIST_SECTION,
+        SectionName('Debug'):   DEBUG_SECTION,
     }
 )
 
@@ -74,15 +81,11 @@ CONFIGURATION_SECTIONS: Sections = Sections(
 class Preferences(DynamicConfiguration, metaclass=SingletonV3):
     """
     This updated class runs on both macOS and IOS
-        1. Let the original __init__ run. (On desktop it finds the file; on iOS it safely misses it)
-        2. Check if we are running as Toga application
-        3. Retrieve the strictly safe sandbox directory (iOS, macOS, Android, Windows)
-        4. IOS requiest that the directory exists
-        5. Override the internal file path
-        6. Reload the configuration from the sandboxed path
 
-    On macOS
+    On macOS as a BeeWare app:
         <home>/Library/Preferences/org.gitissue2todoist.gitissue2todoist
+    for unit testting
+        <home>/.config/gitissue2todoist
     """
     def __init__(self):
         self._logger: Logger = getLogger(__name__)
@@ -90,11 +93,9 @@ class Preferences(DynamicConfiguration, metaclass=SingletonV3):
         baseFileName: str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}.ini'
         moduleName:   str = f'{ResourceManager.CANONICAL_APPLICATION_NAME.lower()}'
 
-        super().__init__(baseFileName=baseFileName, moduleName=moduleName, sections=CONFIGURATION_SECTIONS)     # 1
+        if App.app is None:
+            configurationLocator: IConfigurationLocator = ConfigurationLocator()
+        else:
+            configurationLocator = TogaConfigurationLocator()
 
-        if App.app is not None:                                                                                 # 2
-            togaConfigDir: Path = App.app.paths.config                                                          # 3
-
-            togaConfigDir.mkdir(parents=True, exist_ok=True)                                                    # 4
-            self._fqFileName = togaConfigDir / baseFileName                                                     # 5
-            self._loadConfiguration()                                                                           # 6
+        super().__init__(baseFileName=baseFileName, moduleName=moduleName, sections=CONFIGURATION_SECTIONS, configurationLocator=configurationLocator)

@@ -1,3 +1,4 @@
+from typing import Dict
 from typing import cast
 
 from logging import Logger
@@ -10,8 +11,11 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
 from gitissue2todoist.IRepositoryIssues import ISSUE_DATA_KEY
+from gitissue2todoist.IRepositoryIssues import ISSUE_TITLE_KEY
 from gitissue2todoist.IRepositoryIssues import IssueData
 from gitissue2todoist.IRepositoryIssues import IssueDataRow
+from gitissue2todoist.IRepositoryIssues import REPOSITORY_NAME_NOT_SET
+
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 
@@ -21,6 +25,7 @@ from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.components.MobileMultiSelect import SelectedValues
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
@@ -51,25 +56,32 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         self.add(self._mobileMultiSelect)
         self.add(self._cloneButton)
 
-        self._issueData: IssueData = cast(IssueData, None)     # noqa
+        self._issueData:      IssueData = cast(IssueData, None)     # noqa
+        self._repositoryName: Slug      = REPOSITORY_NAME_NOT_SET
 
-        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED, listener=self._selectedMilestoneChangedListener)
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
+        self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED,  listener=self._selectedMilestoneChangedListener)
 
     @property
     def selectedIssues(self) -> AbbreviatedGitIssues:
         """
-        TODO:  This needs fixing for this component
-
 
         Returns: A list of selected issues (toggled ON)
         """
+        selectedValues: SelectedValues = self._mobileMultiSelect.selectedValues
+        self.logger.info(f'{selectedValues=}')
 
         abbreviatedGitIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
 
-        for issue in self._issueData:
-            issueDataRow:        IssueDataRow = issue
-            abbreviatedGitIssue: AbbreviatedGitIssue = cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY])
-            abbreviatedGitIssues.append(abbreviatedGitIssue)
+        # Build the issue name to AbbreviatedGitIssue
+        issueLookup: Dict[str, AbbreviatedGitIssue] = {
+            cast(str, row[ISSUE_TITLE_KEY]): cast(AbbreviatedGitIssue, row[ISSUE_DATA_KEY])
+            for row in self._issueData
+        }
+        # Look selected issues
+        for issueTitle in selectedValues:
+            selectedIssue: AbbreviatedGitIssue = cast(AbbreviatedGitIssue,issueLookup.get(issueTitle))
+            abbreviatedGitIssues.append(selectedIssue)
 
         return abbreviatedGitIssues
 
@@ -90,11 +102,10 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         if hasNoSelections:
             self._cloneButton.enabled = False
 
-
     def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: str):
 
         issueData: IssueData = self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
-        self.logger.info(f'{issueData=}')
+        self.logger.debug(f'{issueData=}')
 
         values: MultiSelectValues = MultiSelectValues([])
 
@@ -103,5 +114,15 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
             values.append(cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY]).issueTitle)
 
         self._issueData = issueData
-        self.logger.info(f'values=')
+        self.logger.debug(f'values=')
         self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, values)))
+
+    def _selectedRepositoryChangedListener(self, repositoryName: Slug):
+        """
+        We need to save the current repository
+
+        Args:
+            repositoryName:
+
+        """
+        self._repositoryName = repositoryName

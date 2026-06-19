@@ -71,8 +71,11 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
             progressCb:
             projectId:
         """
+        assert info.repositoryTask is not None, 'Developer Error: The repository task must be set prior to cloning.'
+
         tasks:     List[TaskInfo] = info.tasksToClone
 
+        self.logger.info(f'{info.repositoryTask=}')
         justRepoName:      str  = info.repositoryTask.split('/')[1]
         repoTaskId:        str  = self._getIdForRepoName(projectId=projectId, repoName=justRepoName)
         milestoneTaskItem: Task = self._createMileStoneTaskUnderRepoTask(projectId=projectId,

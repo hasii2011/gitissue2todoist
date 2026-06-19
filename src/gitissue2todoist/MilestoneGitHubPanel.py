@@ -52,12 +52,15 @@ class MilestoneGitHubPanel(Box):
         issuesLabel:      Label = UICommon.createStandardSectionTitle('Issues')
         repositoryIssues: IRepositoryIssues
 
-        if sysPlatform == AppCommon.PLATFORM_MAC:
-            repositoryIssues = RepositoryIssues(pubSubEngine=self._pubSubEngine)
-        elif sysPlatform == AppCommon.PLATFORM_IOS:
-            repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)
+        if self._preferences.debugMobileIssueSelector:
+            repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)  # temp so I can test it
         else:
-            assert False, 'Unsupported platform'
+            if sysPlatform == AppCommon.PLATFORM_MAC:
+                repositoryIssues = RepositoryIssues(pubSubEngine=self._pubSubEngine)
+            elif sysPlatform == AppCommon.PLATFORM_IOS:
+                repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)
+            else:
+                assert False, 'Unsupported platform'
 
         issuesBox: Box = Box(
             children=[issuesLabel, cast(Widget, repositoryIssues)],
