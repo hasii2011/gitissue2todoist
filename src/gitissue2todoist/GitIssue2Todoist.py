@@ -20,7 +20,7 @@ from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.TodoistPanel import TodoistPanel
 from gitissue2todoist.general.ResourceManager import ResourceManager
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.PubSubEngine import PubSubEngine

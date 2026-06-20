@@ -6,7 +6,7 @@ from codeallybasic.UnitTestBase import UnitTestBase
 
 from os import environ as osEnvironment
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
 from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus

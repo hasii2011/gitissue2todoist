@@ -8,7 +8,7 @@ from todoist_api_python.models import Task
 
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
 

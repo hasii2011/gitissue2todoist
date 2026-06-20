@@ -10,7 +10,7 @@ from httpx import Response
 from httpx import RequestError
 from httpx import HTTPStatusError
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
 from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs

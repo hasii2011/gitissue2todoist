@@ -19,7 +19,7 @@ from gitissue2todoist.IRepositoryIssues import IRepositoryIssues
 from gitissue2todoist.RepositoryIssues import RepositoryIssues
 from gitissue2todoist.MobileRepositoryIssues import MobileRepositoryIssues
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.adapters.IGitHubAdapter import Slug

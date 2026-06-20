@@ -8,7 +8,7 @@ from logging import getLogger
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Project
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 ProjectName = str
 ProjectId   = str

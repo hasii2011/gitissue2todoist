@@ -19,7 +19,7 @@ from codeallybasic.SecureConversions import SecureConversions
 
 from toga import App
 
-from gitissue2todoist.TogaConfigurationLocator import TogaConfigurationLocator
+from gitissue2todoist.general.TogaConfigurationLocator import TogaConfigurationLocator
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
 from gitissue2todoist.general.ResourceManager import ResourceManager

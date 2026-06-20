@@ -24,7 +24,7 @@ from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
 from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
 from gitissue2todoist.dialogs.IOSProgressDialog import IOSProgressDialog

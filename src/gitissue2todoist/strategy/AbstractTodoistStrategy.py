@@ -20,7 +20,7 @@ from gitissue2todoist.strategy.ITodoistCreationStrategy import ITodoistCreationS
 
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation

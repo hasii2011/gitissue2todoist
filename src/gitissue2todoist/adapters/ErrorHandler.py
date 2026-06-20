@@ -14,7 +14,7 @@ from toga import InfoDialog
 from toga import QuestionDialog
 from toga import Window
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 INVALID_TEMP_ID: int = 16
 MAX_PROJECTS:    int = 50

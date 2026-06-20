@@ -21,7 +21,7 @@ from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionErro
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 from gitissue2todoist.adapters.IGitHubAdapter import Slug

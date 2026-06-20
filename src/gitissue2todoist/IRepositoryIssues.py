@@ -7,7 +7,7 @@ from typing import NewType
 from abc import ABC
 from abc import abstractmethod
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
 

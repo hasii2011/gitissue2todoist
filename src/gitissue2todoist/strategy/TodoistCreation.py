@@ -13,7 +13,7 @@ from gitissue2todoist.strategy.TodoistCreateByRepository import TodoistCreateByR
 from gitissue2todoist.strategy.TodoistCreateSingleProject import TodoistCreateSingleProject
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
-from gitissue2todoist.Preferences import Preferences
+from gitissue2todoist.preferences.Preferences import Preferences
 
 UNAUTHORIZED_CODE: int = 401
 FORBIDDEN_CODE:    int = 403
