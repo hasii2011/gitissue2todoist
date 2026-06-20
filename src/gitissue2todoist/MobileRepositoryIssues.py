@@ -1,3 +1,4 @@
+
 from typing import Dict
 from typing import cast
 
@@ -14,10 +15,10 @@ from gitissue2todoist.IRepositoryIssues import ISSUE_DATA_KEY
 from gitissue2todoist.IRepositoryIssues import ISSUE_TITLE_KEY
 from gitissue2todoist.IRepositoryIssues import IssueData
 from gitissue2todoist.IRepositoryIssues import IssueDataRow
-from gitissue2todoist.IRepositoryIssues import REPOSITORY_NAME_NOT_SET
 
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
@@ -56,8 +57,7 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         self.add(self._mobileMultiSelect)
         self.add(self._cloneButton)
 
-        self._issueData:      IssueData = cast(IssueData, None)     # noqa
-        self._repositoryName: Slug      = REPOSITORY_NAME_NOT_SET
+        self._issueData: IssueData            = cast(IssueData, None)     # noqa
 
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED,  listener=self._selectedMilestoneChangedListener)
@@ -87,7 +87,8 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
 
     # noinspection PyUnusedLocal
     def _onClone(self, widget):
-        cloneInformation: CloneInformation = self._cloneSelectedIssues()
+        cloneInformation: CloneInformation = self._createCloneInformation()
+
         self._pubSubEngine.sendMessage(
             messageType=MessageType.CLONE_ISSUES,
             cloneInformation=cloneInformation,
@@ -102,7 +103,7 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         if hasNoSelections:
             self._cloneButton.enabled = False
 
-    def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: str):
+    def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: MilestoneTitle):
 
         issueData: IssueData = self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
         self.logger.debug(f'{issueData=}')
@@ -116,6 +117,7 @@ class MobileRepositoryIssues(Box, IRepositoryIssues):
         self._issueData = issueData
         self.logger.debug(f'values=')
         self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, values)))
+        self._milestoneTitle = milestoneTitle
 
     def _selectedRepositoryChangedListener(self, repositoryName: Slug):
         """

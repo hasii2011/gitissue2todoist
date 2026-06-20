@@ -111,7 +111,7 @@ class RepositoryIssues(Box, IRepositoryIssues):
     # noinspection PyUnusedLocal
     def _onClone(self, widget):
 
-        cloneInformation: CloneInformation = self._cloneSelectedIssues()
+        cloneInformation: CloneInformation = self._createCloneInformation()
 
         self._pubSubEngine.sendMessage(
             messageType=MessageType.CLONE_ISSUES,

@@ -87,9 +87,9 @@ class TodoistPanel(Box):
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, listener=self._selectedRepositoryChangedListener)
         self._pubSubEngine.subscribe(messageType=MessageType.SELECTED_MILESTONE_CHANGED,  listener=self._selectedMilestoneChangedListener)
 
-        self._todoistCreation:  TodoistCreation  = TodoistCreation()
+        self._todoistCreation:  TodoistCreation  = cast(TodoistCreation, None)      # noqa
         self._cloneInformation: CloneInformation = cast(CloneInformation, None)     # noqa
-        self._progressDlg:      IProgressDialog  = cast(IProgressDialog, None)       # noqa
+        self._progressDlg:      IProgressDialog  = cast(IProgressDialog, None)      # noqa
 
     def _cloneIssuesListener(self, cloneInformation: CloneInformation):
         """

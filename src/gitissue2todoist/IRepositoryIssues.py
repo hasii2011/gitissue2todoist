@@ -1,7 +1,6 @@
 
 from typing import Dict
 from typing import List
-from typing import cast
 from typing import Union
 from typing import NewType
 
@@ -34,7 +33,8 @@ IssueData = NewType('IssueData', List[IssueDataRow])
 ISSUE_TITLE_KEY: IssueKey = IssueKey('issue')
 ISSUE_DATA_KEY:  IssueKey = IssueKey('abbreviatedGitIssue')
 
-REPOSITORY_NAME_NOT_SET: Slug = Slug('REMEMBER_TO_TRACK_THE_CURRENT_REPOSITORY_NAME')
+REPOSITORY_NAME_NOT_SET: Slug           = Slug('REMEMBER_TO_TRACK_THE_CURRENT_REPOSITORY_NAME')
+MILESTONE_NAME_NOT_SET:  MilestoneTitle = MilestoneTitle('REMEMBER_TO_TRACK_THE_CURRENT_MILESTONE_NAME')
 
 class IRepositoryIssues(ABC):
 
@@ -43,8 +43,8 @@ class IRepositoryIssues(ABC):
         self._preferences:  Preferences   = Preferences()
         self._pubSubEngine: IPubSubEngine = pubSubEngine
 
-        self._repositoryName: Slug           = cast(Slug, None)             # noqa
-        self._milestoneTitle: MilestoneTitle = cast(MilestoneTitle, None)   # noqa
+        self._repositoryName: Slug           = REPOSITORY_NAME_NOT_SET
+        self._milestoneTitle: MilestoneTitle = MILESTONE_NAME_NOT_SET
 
     @property
     @abstractmethod
@@ -84,7 +84,7 @@ class IRepositoryIssues(ABC):
 
         return issueData
 
-    def _cloneSelectedIssues(self) -> CloneInformation:
+    def _createCloneInformation(self) -> CloneInformation:
 
         selectedIssues: AbbreviatedGitIssues = self.selectedIssues
 
