@@ -1,5 +1,6 @@
 
 from typing import List
+from typing import Tuple
 from typing import cast
 
 from sys import platform as sysPlatform
@@ -29,6 +30,7 @@ URL_OPTION_MARGIN_BOTTOM: int = 15
 
 TOKEN_ROW_MARGIN_BOTTOM: int = 10
 TOKEN_LABEL_WIDTH:       int = 150
+TOKEN_INPUT_WIDTH:       int = 250
 
 
 class PreferencesTabbedPanel(OptionContainer):
@@ -82,16 +84,9 @@ class PreferencesTabbedPanel(OptionContainer):
             - self._githubTokenInput
         """
         # Todoist Token
-        todoistTokenRow:   Box       = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
-        todoistTokenLabel: Label     = Label('Todoist Token', style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
-        self._todoistToken = TextInput(style=Pack(width=150, flex=1))
-        todoistTokenRow.add(todoistTokenLabel, self._todoistToken)
-
+        todoistTokenRow, self._todoistToken = self._buildTokenRow('Todoist Token')
         # GitHub Token
-        githubTokenRow:   Box           = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
-        githubTokenLabel: Label         = Label('GitHub Token', style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
-        self._githubToken = TextInput(style=Pack(width=150, flex=1))
-        githubTokenRow.add(githubTokenLabel, self._githubToken)
+        githubTokenRow, self._githubToken = self._buildTokenRow('GitHub Token')
 
         self.tokensBox.add(todoistTokenRow, githubTokenRow)
 
@@ -151,6 +146,16 @@ class PreferencesTabbedPanel(OptionContainer):
         self.githubBox.add(self._githubUrlOption)
 
         self._githubUrlOption.on_change = self._onGitHubUrlOptionChanged
+
+    def _buildTokenRow(self, textLabel: str) -> Tuple[Box, TextInput]:
+
+        tokenRow:   Box        = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
+        tokenLabel: Label      = Label(textLabel, style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
+        tokenInput: TextInput = TextInput(style=Pack(width=TOKEN_INPUT_WIDTH, flex=1))
+
+        tokenRow.add(tokenLabel, tokenInput)
+
+        return  tokenRow, tokenInput
 
     def _setDialogValues(self):
 
