@@ -7,7 +7,12 @@
         },
         "testSimple": {
             "format": "%(levelname)s: %(module)s: %(message)s"
+        },
+        "functionNames": {
+            "format": "%(asctime)s.%(msecs)03d %(module)s.%(funcName)s():%(lineno)d %(message)s",
+            "datefmt" : "%H:%M:%S"
         }
+
     },
     "handlers": {
         "consoleHandler": {
@@ -22,26 +27,10 @@
             "handlers": ["consoleHandler"],
             "propagate": false
         },
-        "TestADialog": {
-            "level":     "INFO",
-            "propagate": false
-        },
-        "TestGithubAdapter": {
+        "tests": {
             "level":     "INFO",
             "propagate": false,
             "handlers":  ["consoleHandler"]
-        },
-        "TestTodoistAdapterReal": {
-            "level":     "INFO",
-            "propagate": false
-        },
-        "tests.TestTodoistAdapterBase": {
-            "level":     "INFO",
-            "propagate": false
-        },
-        "gittodoistclone.adapters.TodoistAdapter": {
-            "level":     "WARNING",
-            "propagate": false
         }
     }
 }

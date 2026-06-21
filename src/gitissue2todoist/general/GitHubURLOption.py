@@ -1,8 +1,8 @@
 
-from enum import Enum
+from enum import StrEnum
 
 
-class GitHubURLOption(Enum):
+class GitHubURLOption(StrEnum):
 
     DoNotAdd            = 'Do not add'
     AddAsDescription    = 'Add as description'

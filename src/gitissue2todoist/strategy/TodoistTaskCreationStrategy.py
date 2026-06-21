@@ -1,8 +1,8 @@
 
-from enum import Enum
+from enum import StrEnum
 
 
-class TodoistTaskCreationStrategy(Enum):
+class TodoistTaskCreationStrategy(StrEnum):
 
     SINGLE_TODOIST_PROJECT      = 'Single Todoist Project'
     PROJECT_BY_REPOSITORY       = 'Project by Repository'
