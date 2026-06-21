@@ -100,7 +100,6 @@ class RepositorySelector(Box):
             # Try again!
             await self.loadRepositoriesSelectionList()
 
-
     async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
         """
 

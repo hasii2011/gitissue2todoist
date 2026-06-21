@@ -10,19 +10,20 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
-from gitissue2todoist.preferences.PreferencesTabbedPanel import PreferencesTabbedPanel
+from gitissue2todoist.preferences.IPreferencesDialog import IPreferencesDialog
 
 
-class PreferencesDialog(Window):
+class PreferencesDialog(Window, IPreferencesDialog):
     """
     An async dialog that wraps the ConfigTabbedPanel UI.
     """
     def __init__(self, title: str = 'Configuration'):
+
         super().__init__(title=title, size=(500, 350))
+        IPreferencesDialog.__init__(self)
 
         self.logger:       Logger                = getLogger(__name__)
         self._future:      asyncio.Future | None = None
-        self._configPanel:  PreferencesTabbedPanel     = PreferencesTabbedPanel()
 
         self.content = self._createDialogContent()
 
@@ -38,22 +39,6 @@ class PreferencesDialog(Window):
         assert self._future is not None, 'I know what I am doing'
         result: bool = await self._future
         return result
-
-    def _createDialogContent(self) -> Box:
-        okButton:     Button = Button('OK', on_press=self._onOk)
-        cancelButton: Button = Button('Cancel', on_press=self._onCancel, style=Pack(margin_right=10))
-
-        spacerBox: Box = Box(style=Pack(flex=1))
-        buttonBox: Box = Box(children=[spacerBox, cancelButton, okButton], style=Pack(direction=ROW, margin_top=10))
-
-        mainBox: Box = Box(
-            children=[
-                self._configPanel,
-                buttonBox
-            ],
-            style=Pack(direction=COLUMN, margin=20)
-        )
-        return mainBox
 
     # noinspection PyUnusedLocal
     def _onOk(self, widget) -> None:

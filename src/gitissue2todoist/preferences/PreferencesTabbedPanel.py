@@ -2,6 +2,8 @@
 from typing import List
 from typing import cast
 
+from sys import platform as sysPlatform
+
 from toga import Box
 from toga import Label
 from toga import Switch
@@ -10,14 +12,18 @@ from toga import Selection
 from toga import OptionItem
 from toga import OptionContainer
 
-from gitissue2todoist.preferences.Preferences import Preferences
-from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
-from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
-
 from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import LEFT
 from toga.style.pack import ROW
+
+from gitissue2todoist.UICommon import UICommon
+from gitissue2todoist.AppCommon import AppCommon
+
+from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
+from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
+
 
 URL_OPTION_MARGIN_BOTTOM: int = 15
 
@@ -26,18 +32,20 @@ TOKEN_LABEL_WIDTH:       int = 150
 
 
 class PreferencesTabbedPanel(OptionContainer):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+
+        super().__init__(**kwargs)
 
         self._preferences: Preferences = Preferences()
 
-        self.tokensBox:  Box = Box(style=Pack(direction=COLUMN, margin=10))
-        self.todoistBox: Box = Box(style=Pack(direction=COLUMN, margin=10))
-        self.githubBox:  Box = Box(style=Pack(direction=COLUMN, margin=10))
+        iosTopMargin = 100 if sysPlatform == AppCommon.PLATFORM_IOS else 10
+
+        self.tokensBox:  Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10, margin_top=iosTopMargin))
+        self.todoistBox: Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10, margin_top=iosTopMargin))
+        self.githubBox:  Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10, margin_top=iosTopMargin))
         
         self._todoistToken:         TextInput
         self._githubToken:          TextInput
-        self._taskCreationStrategy: Selection
         self._githubUrlOption:      Selection
         self._todoistProjectName:   TextInput
         self._cacheCleanupSwitch:   Switch
@@ -46,15 +54,11 @@ class PreferencesTabbedPanel(OptionContainer):
         self._buildTodoistTab()
         self._buildGitHubTab()
         
-        self.content.append(OptionItem('Tokens', self.tokensBox))
-        self.content.append(OptionItem('Todoist', self.todoistBox))
-        self.content.append(OptionItem('GitHub', self.githubBox))
+        self.content.append(OptionItem('Tokens',  Box(children=[self.tokensBox],  style=Pack(direction=COLUMN, flex=1))))
+        self.content.append(OptionItem('Todoist', Box(children=[self.todoistBox], style=Pack(direction=COLUMN, flex=1))))
+        self.content.append(OptionItem('GitHub',  Box(children=[self.githubBox],  style=Pack(direction=COLUMN, flex=1))))
 
         self._setDialogValues()
-
-    @property
-    def gitHubAPIToken(self) -> str:
-        return self._githubToken.value
 
     def savePreferences(self):
 
@@ -80,13 +84,13 @@ class PreferencesTabbedPanel(OptionContainer):
         # Todoist Token
         todoistTokenRow:   Box       = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
         todoistTokenLabel: Label     = Label('Todoist Token', style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
-        self._todoistToken = TextInput(style=Pack(flex=1))
+        self._todoistToken = TextInput(style=Pack(width=150, flex=1))
         todoistTokenRow.add(todoistTokenLabel, self._todoistToken)
 
         # GitHub Token
         githubTokenRow:   Box           = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
         githubTokenLabel: Label         = Label('GitHub Token', style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
-        self._githubToken = TextInput(style=Pack(flex=1))
+        self._githubToken = TextInput(style=Pack(width=150, flex=1))
         githubTokenRow.add(githubTokenLabel, self._githubToken)
 
         self.tokensBox.add(todoistTokenRow, githubTokenRow)
@@ -113,18 +117,20 @@ class PreferencesTabbedPanel(OptionContainer):
             strategy.value for strategy in TodoistTaskCreationStrategy
             if strategy != TodoistTaskCreationStrategy.NOT_SET
         ]
-        self._taskCreationStrategy = Selection(items=strategyItems, style=Pack(margin_bottom=15))
+        self._taskCreationStrategy = Selection(items=strategyItems, style=Pack(width=300, margin_bottom=15))
         self.todoistBox.add(self._taskCreationStrategy)
 
         # Todoist Project Name
         projectNameRow:   Box       = Box(style=Pack(direction=ROW, margin_bottom=10))
-        projectNameLabel: Label     = Label('Todoist Project Name', style=Pack(width=150, text_align=LEFT))
+        projectNameLabel: Label     = Label('Todoist Project Name', style=Pack(width=160, text_align=LEFT))
 
-        self._todoistProjectName = TextInput(style=Pack(flex=1))
+        self._todoistProjectName = TextInput(style=Pack(width=140, flex=1))
         self._todoistProjectName.value = 'Development'
         projectNameRow.add(projectNameLabel, self._todoistProjectName)
 
         self.todoistBox.add(projectNameRow)
+
+        self._taskCreationStrategy.on_change = self._onTaskCreationStrategyChanged
 
     def _buildGitHubTab(self) -> None:
         """
@@ -137,12 +143,14 @@ class PreferencesTabbedPanel(OptionContainer):
         self.githubBox.add(urlLabel)
 
         urlOptions: List[str] = [option.value for option in GitHubURLOption]
-        self._githubUrlOption = Selection(items=urlOptions, style=Pack(margin_bottom=URL_OPTION_MARGIN_BOTTOM))
+        self._githubUrlOption = Selection(items=urlOptions, style=Pack(width=300, margin_bottom=URL_OPTION_MARGIN_BOTTOM))
         
         # Default to Hyper Linked Task Name
         self._githubUrlOption.value = GitHubURLOption.HyperLinkedTaskName.value
         
         self.githubBox.add(self._githubUrlOption)
+
+        self._githubUrlOption.on_change = self._onGitHubUrlOptionChanged
 
     def _setDialogValues(self):
 
@@ -156,3 +164,9 @@ class PreferencesTabbedPanel(OptionContainer):
         self._taskCreationStrategy.value = preferences.taskCreationStrategy.value
 
         self._githubUrlOption.value = preferences.gitHubURLOption.value
+
+    def _onTaskCreationStrategyChanged(self, selection: Selection):
+        UICommon.popDownPicker(selection=selection)
+
+    def _onGitHubUrlOptionChanged(self, selection: Selection):
+        UICommon.popDownPicker(selection=selection)

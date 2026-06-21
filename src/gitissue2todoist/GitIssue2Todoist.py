@@ -1,24 +1,36 @@
+
 from typing import cast
 
 import logging.config
+
 from logging import shutdown as loggingShutdown
 
 from json import load as jsonLoad
 
 from pathlib import Path
 
+from asyncio import create_task
+
+from sys import platform as sysPlatform
+
 from toga import App
 from toga import Box
+from toga import Button
+from toga import Command
+from toga import Group
 from toga import MainWindow
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.TodoistPanel import TodoistPanel
 from gitissue2todoist.general.ResourceManager import ResourceManager
+from gitissue2todoist.preferences.IOSPreferencesDialog import IOSPreferencesDialog
+from gitissue2todoist.preferences.IPreferencesDialog import IPreferencesDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
 
@@ -27,13 +39,19 @@ from gitissue2todoist.pubsubengine.PubSubEngine import PubSubEngine
 
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
+from gitissue2todoist.preferences.PreferencesDialog import PreferencesDialog
+
 
 class GitIssue2Todoist(App):
     JSON_LOGGING_CONFIG_FILENAME: str = "loggingConfiguration.json"
 
     def __init__(self):
 
-        super().__init__()
+        # Make sure this matches pyproject.toml
+        super().__init__(
+            formal_name='GitIssue2Todoist',
+            app_id='org.gitissue2todoist.gitissue2todoist'
+        )
         self._setupSystemLogging()
 
         self._preferences:  Preferences   = Preferences()
@@ -73,11 +91,26 @@ class GitIssue2Todoist(App):
             gitHubContainer.add(self._repositorySelector)
             gitHubContainer.add(self._milestoneGithubPanel)
 
+            # Only render this button on mobile platforms where menus don't exist
+            if sysPlatform == AppCommon.PLATFORM_IOS:
+                settingsButton = Button(
+                    '⚙️ Settings',
+                    on_press=self._actionPreferences,
+                    style=Pack(margin=5)
+                )
+                mainContainer.add(settingsButton)
+
             mainContainer.add(gitHubContainer)
             mainContainer.add(self._todoistPanel)
 
             self.main_window.content = mainContainer
 
+            preferencesCommand: Command = Command(
+                self._actionPreferences,
+                text='Preferences...',
+                group=Group.APP  # Group.APP places it specifically in the macOS app menu!
+            )
+            self.commands.add(preferencesCommand)
             # noinspection PyUnresolvedReferences
             self.main_window.show()
             
@@ -93,6 +126,33 @@ class GitIssue2Todoist(App):
 
     async def on_running(self):
         await self._repositorySelector.loadRepositoriesSelectionList()
+
+    # noinspection PyUnusedLocal
+    def _actionPreferences(self, command: Command, **kwargs) -> bool:
+        """
+        The pure synchronous action handler that perfectly satisfies Toga's ActionHandler Protocol
+        Args:
+
+        """
+        create_task(self._showPreferencesDialog())
+
+        return True
+
+    async def _showPreferencesDialog(self) -> None:
+        """
+        The async background task that actually halts execution to wait for the dialog
+        """
+        if self._preferences.debugMobilePreferencesDialog:
+            dialog: IPreferencesDialog = IOSPreferencesDialog()
+        else:
+            if sysPlatform == AppCommon.PLATFORM_IOS:
+                dialog = IOSPreferencesDialog()
+            elif sysPlatform == AppCommon.PLATFORM_MAC:
+                dialog = PreferencesDialog()
+            else:
+                assert False, 'Unsupported platform'
+
+        await dialog.showDialog()
 
     def _setupSystemLogging(self):
 

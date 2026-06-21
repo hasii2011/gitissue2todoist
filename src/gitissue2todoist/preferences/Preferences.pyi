@@ -17,3 +17,4 @@ class Preferences:
     todoistProjectName: str
     taskCreationStrategy: TodoistTaskCreationStrategy
     debugMobileIssueSelector: bool
+    debugMobilePreferencesDialog: bool

@@ -51,8 +51,6 @@ class DemoPreferencesDialogApp(App):
         
         if result:
             self.logger.info('Dialog OK clicked! Configuration state:')
-            # Demonstrate reading a value from the panel to ensure it works
-            self.logger.info(f'Todoist Project: {self.configDialog._configPanel.gitHubAPIToken}')
         else:
             self.logger.info("Dialog Canceled.")
 
