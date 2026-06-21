@@ -13,7 +13,7 @@ from toga.style.pack import ROW
 from gitissue2todoist.preferences.PreferencesTabbedPanel import PreferencesTabbedPanel
 
 
-class ConfigDialog(Window):
+class PreferencesDialog(Window):
     """
     An async dialog that wraps the ConfigTabbedPanel UI.
     """

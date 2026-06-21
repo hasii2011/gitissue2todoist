@@ -14,13 +14,13 @@ from toga import Box
 from toga import Button
 from toga import MainWindow
 
-from gitissue2todoist.preferences.ConfigDialog import ConfigDialog
+from gitissue2todoist.preferences.PreferencesDialog import PreferencesDialog
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
 
-class DemoConfigTabbedPanelApp(App):
+class DemoPreferencesDialogApp(App):
 
     def __init__(self, formal_name: str, app_id: str):
 
@@ -30,12 +30,12 @@ class DemoConfigTabbedPanelApp(App):
 
         self.logger: Logger = getLogger('tests.DemoConfigTabbedPanelApp')
 
-        self.configDialog: ConfigDialog = cast(ConfigDialog, None)      # noqa
+        self.configDialog: PreferencesDialog = cast(PreferencesDialog, None)      # noqa
 
     def startup(self) -> None:
         mainBox: Box = Box(style=Pack(direction=COLUMN, margin=10))
         
-        openConfigBtn: Button = Button('Open Configuration', on_press=self._onOpenConfig, style=Pack(margin=50))
+        openConfigBtn: Button = Button('Open Preferences Dialog', on_press=self._onOpenPreferencesDialog, style=Pack(margin=50))
         mainBox.add(openConfigBtn)
 
         mainWindow: MainWindow = MainWindow(title=self.formal_name, size=(400, 200))
@@ -44,9 +44,9 @@ class DemoConfigTabbedPanelApp(App):
         mainWindow.show()
 
     # noinspection PyUnusedLocal
-    async def _onOpenConfig(self, widget) -> None:
+    async def _onOpenPreferencesDialog(self, widget) -> None:
         """"""
-        self.configDialog = ConfigDialog()
+        self.configDialog = PreferencesDialog()
         result: bool = await self.configDialog.showDialog()
         
         if result:
@@ -78,7 +78,7 @@ class DemoConfigTabbedPanelApp(App):
         logging.logThreads = False
 
 def main() -> App:
-    return DemoConfigTabbedPanelApp(formal_name='Config Panel Demo', app_id='org.gitissue2todoist.gitissue2todoist')
+    return DemoPreferencesDialogApp(formal_name='Config Panel Demo', app_id='org.gitissue2todoist.gitissue2todoist')
 
 if __name__ == '__main__':
     main().main_loop()
