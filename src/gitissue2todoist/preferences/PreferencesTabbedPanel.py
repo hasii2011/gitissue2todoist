@@ -97,58 +97,56 @@ class PreferencesTabbedPanel(OptionContainer):
         Builds the Tokens tab.
         
         Modifies instance variables:
-            - self._todoistTokenInput
-            - self._githubTokenInput
+            - self._todoistToken
+            - self._githubToken
 
         Args:
             container:
 
         """
-        # Todoist Token
         todoistTokenRow, self._todoistToken = self._buildTokenRow('Todoist Token')
-        # GitHub Token
-        githubTokenRow, self._githubToken = self._buildTokenRow('GitHub Token')
+        githubTokenRow, self._githubToken   = self._buildTokenRow('GitHub Token')
 
-        container.add(todoistTokenRow, githubTokenRow)
+        container.add(githubTokenRow, todoistTokenRow)
 
     def _buildTodoistTab(self, container: Box) -> None:
         """
         Builds the Todoist tab.
         
         Modifies instance variables:
-            - self._strategySelection
             - self._cacheCleanupSwitch
-            - self_.projectNameInput
+            - self._taskCreationStrategy
+            - self._todoistProjectName
 
         Args:
             container:
 
         """
         # Allow Todoist Cache Cleanup
-        self._cacheCleanupSwitch = Switch('Allow Todoist Cache Cleanup', style=Pack(margin_bottom=15))
-        self._cacheCleanupSwitch.value = True
+        switchStyle: Pack
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            switchStyle = Pack(width=300, margin_bottom=15)
+        else:
+            switchStyle = Pack(margin_bottom=15)
+
+        self._cacheCleanupSwitch = Switch('Allow Todoist Cache Cleanup', style=switchStyle)
         container.add(self._cacheCleanupSwitch)
 
         # Todoist Task Creation Strategy
-        strategyLabel: Label = Label('Todoist Task Creation Strategy', style=Pack(margin_bottom=5, font_weight='bold'))
+        strategyLabel: Label = Label('Todoist Task Creation Strategy', style=Pack(margin_bottom=5, text_align=LEFT, font_weight='bold'))
         container.add(strategyLabel)
         
-        strategyItems: List[str] = [
-            strategy.value for strategy in TodoistTaskCreationStrategy
-            if strategy != TodoistTaskCreationStrategy.NOT_SET
-        ]
-        self._taskCreationStrategy = Selection(items=strategyItems, style=Pack(width=300, margin_bottom=15))
+        self._taskCreationStrategy = Selection(items=self._getStrategySelections(), style=Pack(width=300, margin_bottom=15))
         container.add(self._taskCreationStrategy)
 
         # Todoist Project Name
-        projectNameRow:   Box       = Box(style=Pack(direction=ROW, margin_bottom=10))
-        projectNameLabel: Label     = Label('Todoist Project Name', style=Pack(width=160, text_align=LEFT))
+        projectNameLabel: Label = Label('Todoist Project Name', style=Pack(margin_bottom=5, width=200, text_align=LEFT, font_weight='bold'))
 
-        self._todoistProjectName = TextInput(style=Pack(width=140, flex=1))
-        self._todoistProjectName.value = 'Development'
-        projectNameRow.add(projectNameLabel, self._todoistProjectName)
+        self._todoistProjectName = TextInput(style=Pack(width=200, flex=1))
 
-        container.add(projectNameRow)
+        projectNameBox: Box   = Box(children=[projectNameLabel, self._todoistProjectName], style=Pack(direction=COLUMN, margin_bottom=10))
+
+        container.add(projectNameBox)
 
         self._taskCreationStrategy.on_change = self._onTaskCreationStrategyChanged
 
@@ -157,7 +155,7 @@ class PreferencesTabbedPanel(OptionContainer):
         Builds the GitHub tab.
         
         Modifies instance variables:
-            - self._githubUrlSelection
+            - self._githubUrlOption
 
         Args:
             container:
@@ -165,8 +163,7 @@ class PreferencesTabbedPanel(OptionContainer):
         """
         urlLabel: Label = Label('Include GitHub Issue URL', style=Pack(margin_bottom=5, font_weight='bold'))
         
-        urlOptions: List[str] = [option.value for option in GitHubURLOption]
-        self._githubUrlOption = Selection(items=urlOptions, style=Pack(width=300, margin_bottom=URL_OPTION_MARGIN_BOTTOM))
+        self._githubUrlOption = Selection(items=self._getGitHubURLOptions(), style=Pack(width=300, margin_bottom=URL_OPTION_MARGIN_BOTTOM))
         
         # Default to Hyper Linked Task Name
         self._githubUrlOption.value = GitHubURLOption.HyperLinkedTaskName.value
@@ -249,3 +246,16 @@ class PreferencesTabbedPanel(OptionContainer):
                 self.logger.error(f'Transient layout error: {e}')
 
             await sleep(IOS_LAYOUT_POLLER_INTERVAL)
+
+    def _getStrategySelections(self) -> List[str]:
+
+        strategyItems: List[str] = [
+            strategy.value for strategy in TodoistTaskCreationStrategy
+            if strategy != TodoistTaskCreationStrategy.NOT_SET
+        ]
+        return strategyItems
+
+    def _getGitHubURLOptions(self) -> List[str]:
+
+        urlOptions: List[str] = [option.value for option in GitHubURLOption]
+        return urlOptions
