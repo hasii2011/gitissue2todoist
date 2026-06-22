@@ -3,6 +3,9 @@ from typing import List
 from typing import Tuple
 from typing import cast
 
+from logging import Logger
+from logging import getLogger
+
 from sys import platform as sysPlatform
 
 from toga import Box
@@ -12,6 +15,7 @@ from toga import TextInput
 from toga import Selection
 from toga import OptionItem
 from toga import OptionContainer
+from toga import Widget
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
@@ -25,6 +29,7 @@ from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
+IOS_LAYOUT_POLLER_INTERVAL: float = 0.25
 
 URL_OPTION_MARGIN_BOTTOM: int = 15
 
@@ -37,17 +42,25 @@ class PreferencesTabbedPanel(OptionContainer):
     def __init__(self, **kwargs) -> None:
 
         super().__init__(**kwargs)
+        
+        self.logger: Logger = getLogger(__name__)
+        
+        # self.on_select = self._onTabSelected
 
         self._preferences: Preferences = Preferences()
+
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            from asyncio import get_event_loop
+            get_event_loop().create_task(self._iosLayoutPoller())
 
         tokensBox:  Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10))
         todoistBox: Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10))
         githubBox:  Box = Box(style=Pack(direction=COLUMN, flex=1, margin=10))
         
         if sysPlatform == AppCommon.PLATFORM_IOS:
-            tokensBox.add(Box(style=Pack(height=100)))
-            todoistBox.add(Box(style=Pack(height=100)))
-            githubBox.add(Box(style=Pack(height=100)))
+            tokensBox.add(Box(style=Pack(height=100, width=300)))
+            todoistBox.add(Box(style=Pack(height=100, width=300)))
+            githubBox.add(Box(style=Pack(height=100, width=300)))
 
         self._todoistToken:         TextInput
         self._githubToken:          TextInput
@@ -150,15 +163,17 @@ class PreferencesTabbedPanel(OptionContainer):
 
         """
         urlLabel: Label = Label('Include GitHub Issue URL', style=Pack(margin_bottom=5, font_weight='bold'))
-        container.add(urlLabel)
-
+        
         urlOptions: List[str] = [option.value for option in GitHubURLOption]
         self._githubUrlOption = Selection(items=urlOptions, style=Pack(width=300, margin_bottom=URL_OPTION_MARGIN_BOTTOM))
         
         # Default to Hyper Linked Task Name
         self._githubUrlOption.value = GitHubURLOption.HyperLinkedTaskName.value
+
+        wrapperBox: Box = Box(style=Pack(direction=COLUMN))
+        wrapperBox.add(urlLabel, self._githubUrlOption)
         
-        container.add(self._githubUrlOption)
+        container.add(wrapperBox)
 
         self._githubUrlOption.on_change = self._onGitHubUrlOptionChanged
 
@@ -166,7 +181,9 @@ class PreferencesTabbedPanel(OptionContainer):
 
         tokenRow:   Box        = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
         tokenLabel: Label      = Label(textLabel, style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
-        tokenInput: TextInput = TextInput(style=Pack(width=TOKEN_INPUT_WIDTH, flex=1))
+        
+        inputStyle = Pack(width=400) if sysPlatform == AppCommon.PLATFORM_IOS else Pack(flex=1)
+        tokenInput: TextInput = TextInput(style=inputStyle)
 
         tokenRow.add(tokenLabel, tokenInput)
 
@@ -190,3 +207,40 @@ class PreferencesTabbedPanel(OptionContainer):
 
     def _onGitHubUrlOptionChanged(self, selection: Selection):
         UICommon.popDownPicker(selection=selection)
+
+    # noinspection PyUnusedLocal
+    # def _onTabSelected(self, optionContainer: OptionContainer, **kwargs) -> None:
+    #
+    #     assert isinstance(optionContainer, OptionContainer)
+    #
+    #     optionItem: OptionItem = cast(OptionItem, optionContainer.current_tab)
+    #
+    #     if optionItem and optionItem.content:
+    #         widget: Widget = optionItem.content
+    #         self.logger.info(f'{widget}.refresh() firing')
+    #         widget.refresh()
+
+    async def _iosLayoutPoller(self) -> None:
+        """
+        This layout poller is a workaround for a Toga framework bug
+        where `OptionContainer.on_select` fails to fire on iOS; Doing this refresh
+        causes selected tab to refresh and correctly display
+        """
+        from asyncio import sleep
+        while True:
+            try:
+                # Stop polling if the widget is removed from the window to prevent memory leaks
+                if getattr(self, 'window', None) is None and getattr(self, '_startedPolling', False):
+                    break
+                self._startedPolling = True
+
+                if getattr(self, 'current_tab', None) and getattr(self.current_tab, 'content', None):
+
+                    optionItem: OptionItem = cast(OptionItem, self.current_tab)
+                    widget: Widget = optionItem.content
+                    widget.refresh()
+                    # self.current_tab.content.refresh()
+
+            except Exception as e:
+                self.logger.error(f'{e}')
+            await sleep(IOS_LAYOUT_POLLER_INTERVAL)

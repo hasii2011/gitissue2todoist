@@ -1,9 +1,11 @@
-
 from typing import cast
+
+from logging import Logger
+from logging import getLogger
+from logging import shutdown as loggingShutdown
 
 import logging.config
 
-from logging import shutdown as loggingShutdown
 
 from json import load as jsonLoad
 
@@ -28,7 +30,6 @@ from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.TodoistPanel import TodoistPanel
-from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.preferences.IOSPreferencesDialog import IOSPreferencesDialog
 from gitissue2todoist.preferences.IPreferencesDialog import IPreferencesDialog
 
@@ -53,6 +54,8 @@ class GitIssue2Todoist(App):
             app_id='org.gitissue2todoist.gitissue2todoist'
         )
         self._setupSystemLogging()
+
+        self.logger: Logger = getLogger(__name__)
 
         self._preferences:  Preferences   = Preferences()
         self._pubSubEngine: IPubSubEngine = PubSubEngine()
@@ -113,6 +116,8 @@ class GitIssue2Todoist(App):
             self.commands.add(preferencesCommand)
             # noinspection PyUnresolvedReferences
             self.main_window.show()
+
+            self.logger.info(f'*************************** GitIssue2Todist Started ***************************')
             
         except Exception as e:
             print(f"FATAL ERROR IN STARTUP: {e}")
@@ -121,6 +126,7 @@ class GitIssue2Todoist(App):
             raise e
 
     def on_exit(self) -> bool:
+        self.logger.info(f'*************************** GitIssue2Todist Ended ***************************')
         loggingShutdown()
         return True
 
@@ -155,11 +161,22 @@ class GitIssue2Todoist(App):
         await dialog.showDialog()
 
     def _setupSystemLogging(self):
+        """
 
-        configFilePath: Path = ResourceManager.retrieveResourcePath(GitIssue2Todoist.JSON_LOGGING_CONFIG_FILENAME)
+        PosixPath('/Users/humberto.a.sanchez.ii/Library/Application Support/org.gitissue2todoist.gitissue2todoist/gitissue2todoist.log')
+        """
+
+        configFilePath: Path = self.paths.app / 'resources' / GitIssue2Todoist.JSON_LOGGING_CONFIG_FILENAME
 
         with open(configFilePath, 'r') as loggingConfigurationFile:
             configurationDictionary = jsonLoad(loggingConfigurationFile)
+
+        safeLogPath: Path = self.paths.data / 'gitissue2todoist.log'
+        #
+        # Hacky way to override the file name from the configuration file
+        # names must EXACTLY match what is in the configuration file
+        #
+        configurationDictionary['handlers']['rotatingFileHandler']['filename'] = str(safeLogPath)
 
         logging.config.dictConfig(configurationDictionary)
         logging.logProcesses = False

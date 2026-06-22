@@ -59,10 +59,8 @@ class DemoPreferencesDialogApp(App):
         """
 
         """
-
         # 1. Target the package where your resources live
         resource_package = files('tests.resources')
-
         # 2. Join the path to the specific file
         config_file = resource_package.joinpath('testLoggingConfiguration.json')
 
