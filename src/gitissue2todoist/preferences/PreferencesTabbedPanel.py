@@ -47,7 +47,8 @@ class PreferencesTabbedPanel(OptionContainer):
         
         # self.on_select = self._onTabSelected
 
-        self._preferences: Preferences = Preferences()
+        self._preferences:    Preferences = Preferences()
+        self._startedPolling: bool        = False
 
         if sysPlatform == AppCommon.PLATFORM_IOS:
             from asyncio import get_event_loop
@@ -229,18 +230,22 @@ class PreferencesTabbedPanel(OptionContainer):
         from asyncio import sleep
         while True:
             try:
-                # Stop polling if the widget is removed from the window to prevent memory leaks
-                if getattr(self, 'window', None) is None and getattr(self, '_startedPolling', False):
+                # Have we been added to the screen yet?
+                if self.window is not None:
+                    self._startedPolling = True
+                
+                # We were on the screen, but now we aren't (dialog closed). Stop polling!
+                elif self._startedPolling:
                     break
-                self._startedPolling = True
 
-                if getattr(self, 'current_tab', None) and getattr(self.current_tab, 'content', None):
+                if self.current_tab is not None:
+                    optionItem: OptionItem = cast(OptionItem, self.current_tab)     # type: ignore
 
-                    optionItem: OptionItem = cast(OptionItem, self.current_tab)
-                    widget: Widget = optionItem.content
-                    widget.refresh()
-                    # self.current_tab.content.refresh()
+                    if optionItem.content is not None:
+                        widget: Widget = optionItem.content
+                        widget.refresh()
 
-            except Exception as e:
-                self.logger.error(f'{e}')
+            except (AttributeError, RuntimeError, ValueError) as e:
+                self.logger.error(f'Transient layout error: {e}')
+
             await sleep(IOS_LAYOUT_POLLER_INTERVAL)
