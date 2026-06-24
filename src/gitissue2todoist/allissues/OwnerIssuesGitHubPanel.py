@@ -9,8 +9,8 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.AppCommon import AppCommon
-from gitissue2todoist.MobileRepositoryIssues import MobileRepositoryIssues
-from gitissue2todoist.RepositoryIssues import RepositoryIssues
+from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepositoryIssues
+from gitissue2todoist.SingleRepositoryIssues import SingleRepositoryIssues
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.allissues.UserRepositoriesPanel import UserRepositoriesPanel
@@ -38,12 +38,12 @@ class OwnerIssuesGitHubPanel(Box):
             assert False, 'Unsupported platform'
 
         if self._preferences.debugMobileIssueSelector:
-            repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)  # temp so I can test it
+            repositoryIssues = MobileSingleRepositoryIssues(pubSubEngine=self._pubSubEngine)  # temp so I can test it
         else:
             if sysPlatform == AppCommon.PLATFORM_MAC:
-                repositoryIssues = RepositoryIssues(pubSubEngine=self._pubSubEngine)
+                repositoryIssues = SingleRepositoryIssues(pubSubEngine=self._pubSubEngine)
             elif sysPlatform == AppCommon.PLATFORM_IOS:
-                repositoryIssues = MobileRepositoryIssues(pubSubEngine=self._pubSubEngine)
+                repositoryIssues = MobileSingleRepositoryIssues(pubSubEngine=self._pubSubEngine)
             else:
                 assert False, 'Unsupported platform'
 

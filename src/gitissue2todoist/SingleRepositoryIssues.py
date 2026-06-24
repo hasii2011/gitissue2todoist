@@ -32,7 +32,7 @@ from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 
-class RepositoryIssues(Box, IRepositoryIssues):
+class SingleRepositoryIssues(Box, IRepositoryIssues):
     """
     A container with single column Table with multiple_select enabled and a Button
     """

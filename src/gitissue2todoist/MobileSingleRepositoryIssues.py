@@ -33,7 +33,7 @@ from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 
-class MobileRepositoryIssues(Box, IRepositoryIssues):
+class MobileSingleRepositoryIssues(Box, IRepositoryIssues):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 
