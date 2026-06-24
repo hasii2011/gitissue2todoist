@@ -1,5 +1,6 @@
-from typing import Callable
+
 from typing import Tuple
+from typing import Callable
 
 from sys import platform as sysPlatform
 
@@ -8,8 +9,14 @@ from toga import Button
 from toga import Label
 from toga import Selection
 
+from toga import Position as TogaPosition
+
 from toga.style import Pack
 from toga.style.pack import ROW
+
+from codeallybasic.Position import Position
+
+from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
 
 
 class UICommon:
@@ -77,3 +84,30 @@ class UICommon:
         if sysPlatform == AppCommon.PLATFORM_IOS:
             # noinspection PyProtectedMember
             selection._impl.native.resignFirstResponder()
+
+    @classmethod
+    def setupProgressDialog(cls, title: str) -> IProgressDialog:
+        """
+
+        Returns:  The platform specific dialog
+        """
+        from gitissue2todoist.AppCommon import AppCommon
+        from gitissue2todoist.dialogs.ProgressDialog import ProgressDialog
+        from gitissue2todoist.dialogs.IOSProgressDialog import IOSProgressDialog
+        from gitissue2todoist.preferences.Preferences import Preferences
+
+        preferences: Preferences = Preferences()
+        dlg:         IProgressDialog
+        if sysPlatform == AppCommon.PLATFORM_MAC:
+            dlg = ProgressDialog(title=title)
+            position: Position = preferences.progressDialogPosition
+            dlg.position = TogaPosition(x=position.x, y=position.y)
+
+        elif sysPlatform == AppCommon.PLATFORM_IOS:
+            dlg = IOSProgressDialog(title=title)
+        else:
+            assert False, 'Unsupported platform'
+
+        dlg.showDialog()
+
+        return dlg

@@ -8,3 +8,5 @@ class MessageType(StrEnum):
     CLONE_ISSUES                = 'Clone Issues'
 
     TASK_CREATION_COMPLETE      = 'Task Creation Complete'
+
+    MULTIPLE_REPOSITORIES_SELECTED = 'Multiple Repositories Selected'

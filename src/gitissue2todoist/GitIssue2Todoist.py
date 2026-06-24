@@ -30,6 +30,7 @@ from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.TodoistPanel import TodoistPanel
+from gitissue2todoist.allissues.OwnerIssuesGitHubPanel import OwnerIssuesGitHubPanel
 from gitissue2todoist.preferences.IOSPreferencesDialog import IOSPreferencesDialog
 from gitissue2todoist.preferences.IPreferencesDialog import IPreferencesDialog
 
@@ -60,9 +61,10 @@ class GitIssue2Todoist(App):
         self._preferences:  Preferences   = Preferences()
         self._pubSubEngine: IPubSubEngine = PubSubEngine()
 
-        self._repositorySelector:   RepositorySelector   = cast(RepositorySelector, None)
-        self._milestoneGithubPanel: MilestoneGitHubPanel = cast(MilestoneGitHubPanel, None)
-        self._todoistPanel:         TodoistPanel         = cast(TodoistPanel, None)
+        self._repositorySelector:     RepositorySelector     = cast(RepositorySelector, None)
+        self._milestoneGithubPanel:   MilestoneGitHubPanel   = cast(MilestoneGitHubPanel, None)
+        self._ownerIssuesGitHubPanel: OwnerIssuesGitHubPanel = cast(OwnerIssuesGitHubPanel, None)
+        self._todoistPanel:           TodoistPanel           = cast(TodoistPanel, None)
 
     def startup(self):
         """
@@ -79,20 +81,28 @@ class GitIssue2Todoist(App):
 
         try:
             mainContainer:   Box = Box(style=Pack(direction=ROW, flex=1, margin_left=5, gap=10))
-            gitHubContainer: Box = Box(style=Pack(direction=COLUMN, flex=1, margin_left=5, gap=10))
 
-            self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
 
             if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
                     self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
+
+                self._repositorySelector = RepositorySelector(pubSubEngine=self._pubSubEngine)
+
+                gitHubContainer: Box = Box(style=Pack(direction=COLUMN, flex=1, margin_left=5, gap=10))
+
                 self._milestoneGithubPanel = MilestoneGitHubPanel(pubSubEngine=self._pubSubEngine)
+                gitHubContainer.add(self._repositorySelector)
+                gitHubContainer.add(self._milestoneGithubPanel)
+                mainContainer.add(gitHubContainer)
+
+            elif self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.ALL_ISSUES_ASSIGNED_TO_USER:
+                self._ownerIssuesGitHubPanel = OwnerIssuesGitHubPanel(pubSubEngine=self._pubSubEngine)
+                mainContainer.add(self._ownerIssuesGitHubPanel)
             else:
                 assert False, 'Not yet implemented'
 
             self._todoistPanel = TodoistPanel(pubSubEngine=self._pubSubEngine)
 
-            gitHubContainer.add(self._repositorySelector)
-            gitHubContainer.add(self._milestoneGithubPanel)
 
             # Only render this button on mobile platforms where menus don't exist
             if sysPlatform == AppCommon.PLATFORM_IOS:
@@ -103,7 +113,6 @@ class GitIssue2Todoist(App):
                 )
                 mainContainer.add(settingsButton)
 
-            mainContainer.add(gitHubContainer)
             mainContainer.add(self._todoistPanel)
 
             self.main_window.content = mainContainer
@@ -131,7 +140,10 @@ class GitIssue2Todoist(App):
         return True
 
     async def on_running(self):
-        await self._repositorySelector.loadRepositoriesSelectionList()
+        if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.ALL_ISSUES_ASSIGNED_TO_USER:
+            await self._ownerIssuesGitHubPanel.loadRepositories()
+        else:
+            await self._repositorySelector.loadRepositoriesSelectionList()
 
     # noinspection PyUnusedLocal
     def _actionPreferences(self, command: Command, **kwargs) -> bool:

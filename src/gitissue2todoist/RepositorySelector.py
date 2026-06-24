@@ -62,7 +62,6 @@ class RepositorySelector(Box):
 
     async def loadRepositoriesSelectionList(self):
         try:
-            # Run the synchronous GitHub query in a background thread to prevent UI freezing
             repoNames: Slugs = await to_thread(self._githubAdapter.getRepositoryNames)
             repoNames.sort()
             repoNames.insert(0, NO_SELECTION_SLUG)

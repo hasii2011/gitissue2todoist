@@ -11,13 +11,10 @@ from toga import Button
 from toga import Divider
 from toga import ErrorDialog
 from toga import Widget
-from toga import Position as TogaPosition
 
 from toga.style import Pack
 
 from toga.style.pack import COLUMN
-
-from codeallybasic.Position import Position
 
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
@@ -27,9 +24,7 @@ from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDi
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
-from gitissue2todoist.dialogs.IOSProgressDialog import IOSProgressDialog
 from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
-from gitissue2todoist.dialogs.ProgressDialog import ProgressDialog
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.adapters.ErrorHandler import ErrorHandler
@@ -143,7 +138,7 @@ class TodoistPanel(Box):
         while True:
             # We instantiate this every time so it grabs the freshest API token
             self._todoistCreation = TodoistCreation()
-            self._progressDlg     = self._setupProgressDialog()
+            self._progressDlg     = UICommon.setupProgressDialog(title='Creating Todoist Tasks...')
 
             def _threadSafeCallback(msg: str):
                 self.logger.info(f'{msg}')
@@ -151,9 +146,7 @@ class TodoistPanel(Box):
 
             try:
                 # Execute task creation in a background thread; We don't need a frozen UI
-                await to_thread(
-                    partial(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
-                )
+                await to_thread(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)
                 self._progressDlg.destroy()
                 break  # Exit loop on success
                 
@@ -264,23 +257,3 @@ class TodoistPanel(Box):
 
         return authDialog
 
-    def _setupProgressDialog(self) -> IProgressDialog:
-        """
-
-        Returns:  The platform specific dialog
-        """
-        commonTitle: str = 'Creating Todoist Tasks...'
-        if sysPlatform == AppCommon.PLATFORM_MAC:
-
-            dlg:      IProgressDialog = ProgressDialog(title=commonTitle)
-            position: Position       = self._preferences.progressDialogPosition
-
-            dlg.position = TogaPosition(x=position.x, y=position.y)
-        elif sysPlatform == AppCommon.PLATFORM_IOS:
-            dlg  = IOSProgressDialog(title=commonTitle)
-        else:
-            assert False, 'Unsupported platform'
-
-        dlg.showDialog()
-
-        return dlg

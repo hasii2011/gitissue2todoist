@@ -49,6 +49,7 @@ SECTION_MAIN: ValueDescriptions = ValueDescriptions(
 SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
     {
         KeyName('gitHubAPIToken'):     ValueDescription(defaultValue='Put Your GitHub API Token Here'),
+        KeyName('gitHubUserName'):     ValueDescription(defaultValue='Put Your GitHub User Name Here'),
         KeyName('maxReposToRetrieve'): ValueDescription(defaultValue=DEFAULT_MAX_REPOS, deserializer=SecureConversions.secureInteger),
         KeyName('gitHubURLOption'):    ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
     }
