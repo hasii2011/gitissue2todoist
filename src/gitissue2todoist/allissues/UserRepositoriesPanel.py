@@ -8,7 +8,6 @@ from typing import cast
 from logging import Logger
 from logging import getLogger
 
-from sys import platform as sysPlatform
 
 from toga import Box
 from toga import Button
@@ -17,8 +16,8 @@ from toga import Label
 from toga import Table
 
 from toga.style import Pack
-from toga.style.pack import COLUMN
 from toga.style.pack import ROW
+from toga.style.pack import COLUMN
 
 from toga.sources import Row
 
@@ -30,7 +29,6 @@ from gitissue2todoist.adapters.IGitHubAdapter import Slug
 
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
-from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
@@ -79,17 +77,35 @@ class UserRepositoriesPanel(Box):
     async def loadRepositories(self):
         from asyncio import to_thread
         # We instantiate this every time so it grabs the freshest API token
-        githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        while True:
+            githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
-        try:
-            repoNames: Slugs = await to_thread(githubAdapter.getRepositoryNames)
-            repoNames.sort()
+            try:
+                repoNames: Slugs = await to_thread(githubAdapter.getRepositoryNames)
+                repoNames.sort()
 
-            self._repositoryList.data = repoNames
-        except AdapterAuthenticationError:
-            await self._handleAuthenticationError()
-        except GitHubConnectionError:
-            await self._handleGitHubConnectionError()
+                self._repositoryList.data = repoNames
+                break
+            except AdapterAuthenticationError as e:
+                self.logger.error(f'{e=}')
+                authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
+                    dialogTitle='Authentication Failed',
+                    dialogMessage='Enter GitHub Credentials;  Only need the user name for strategy all',
+                    apiToken=self._preferences.gitHubAPIToken,
+                    gitHubUserName=self._preferences.gitHubUserName
+                )
+                okPressed:  bool = await authDialog.showDialog()
+
+                if okPressed:
+                    # Save the new token into preferences and retry the loop
+                    self._preferences.gitHubAPIToken = authDialog.apiToken
+
+                    continue
+                else:
+                    break  # User canceled, exit loop
+            except Exception as ue:
+                await self._handleGeneralError(error=ue)
+                break
 
     def _createButtons(self) -> Box:
         """
@@ -177,7 +193,8 @@ class UserRepositoriesPanel(Box):
         while True:
             # We instantiate this every time so it grabs the freshest API token
             githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
-            self._progressDlg   = UICommon.setupProgressDialog(title='Retrieving Issues...')
+
+            self._progressDlg = UICommon.setupProgressDialog(title='Retrieving Issues...')
 
             try:
                 # Execute task creation in a background thread; We don't need a frozen UI
@@ -193,15 +210,21 @@ class UserRepositoriesPanel(Box):
                 self._pubSubEngine.sendMessage(MessageType.MULTIPLE_REPOSITORIES_SELECTED, repositories=selectedRepositories)
 
                 break  # Exit loop on success
-            except AdapterAuthenticationError:
+            except AdapterAuthenticationError as e:
                 self._progressDlg.destroy()
+                self.logger.error(f'{e=}')
 
-                authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
-                okPressed:  bool                  = await authDialog.showDialog()
+                authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
+                    dialogTitle='GitHub Authentication Failed',
+                    dialogMessage='Enter GitHub Credentials;  Only need the user name for strategy all',
+                    apiToken=self._preferences.gitHubAPIToken,
+                    gitHubUserName=self._preferences.gitHubUserName
+                )
+                okPressed:  bool = await authDialog.showDialog()
 
                 if okPressed:
                     # Save the new token into preferences and retry the loop
-                    self._preferences.todoistAPIToken = authDialog.apiToken
+                    self._preferences.gitHubAPIToken = authDialog.apiToken
                     continue
                 else:
                     break  # User canceled, exit loop
@@ -209,37 +232,6 @@ class UserRepositoriesPanel(Box):
                 self._progressDlg.destroy()
                 await self._handleGeneralError(error=ue)
                 break
-
-
-    async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
-        """
-
-        Returns:  The platform specific dialog
-        """
-        from gitissue2todoist.AppCommon import AppCommon
-        from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
-        from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
-
-        dialogTitle:   str = 'Todoist Authentication'
-        dialogMessage: str = 'Authentication Failed. Please enter your Todoist API Token:'
-        initialToken:  str = self._preferences.todoistAPIToken
-
-        if sysPlatform == AppCommon.PLATFORM_IOS:
-            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        elif sysPlatform == AppCommon.PLATFORM_MAC:
-            authDialog = AuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        else:
-            assert False, 'Unsupported platform'
-
-        return authDialog
 
     async def _handleGeneralError(self, error: Exception):
         """

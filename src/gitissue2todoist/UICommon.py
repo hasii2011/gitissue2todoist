@@ -16,6 +16,7 @@ from toga.style.pack import ROW
 
 from codeallybasic.Position import Position
 
+from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
 
 
@@ -111,3 +112,38 @@ class UICommon:
         dlg.showDialog()
 
         return dlg
+
+    @classmethod
+    async def setupAuthenticationDialog(cls, dialogTitle: str, dialogMessage: str, apiToken: str, gitHubUserName: str = '') -> IAuthenticationDialog:
+        """
+        For use with GitHub and Todoist authentication tokens
+
+        Args:
+            dialogTitle:
+            dialogMessage:
+            apiToken:
+            gitHubUserName:  Populate only if you are authenticating for the all issues strategy
+
+        Returns:  The platform specific dialog
+        """
+        from gitissue2todoist.AppCommon import AppCommon
+        from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
+        from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
+
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=apiToken
+            )
+        elif sysPlatform == AppCommon.PLATFORM_MAC:
+            authDialog = AuthenticationDialog(
+                title=dialogTitle,
+                message=dialogMessage,
+                initialToken=apiToken
+            )
+        else:
+            assert False, 'Unsupported platform'
+
+        return authDialog
+

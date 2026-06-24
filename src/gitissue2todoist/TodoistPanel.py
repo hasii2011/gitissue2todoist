@@ -4,8 +4,6 @@ from typing import cast
 from logging import Logger
 from logging import getLogger
 
-from sys import platform as sysPlatform
-
 from toga import Box
 from toga import Button
 from toga import Divider
@@ -16,10 +14,7 @@ from toga.style import Pack
 
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
-from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
-from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
@@ -130,7 +125,6 @@ class TodoistPanel(Box):
         from asyncio import AbstractEventLoop
         from asyncio import get_running_loop
         from asyncio import to_thread
-        from functools import partial
 
         ci:   CloneInformation  = self._cloneInformation
         loop: AbstractEventLoop = get_running_loop()
@@ -152,8 +146,15 @@ class TodoistPanel(Box):
                 
             except AdapterAuthenticationError:
                 self._progressDlg.destroy()
-                
-                authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
+
+                authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
+                    dialogTitle='Todoist Authentication Failed',
+                    dialogMessage='Authentication Failed. Please enter your Todoist API Token',
+                    apiToken=self._preferences.todoistAPIToken,
+                    gitHubUserName=self._preferences.gitHubUserName
+                )
+
+                # authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
                 okPressed: bool = await authDialog.showDialog()
                 
                 if okPressed:
@@ -229,31 +230,4 @@ class TodoistPanel(Box):
         self._clonedIssuesDisplay.clearCloneInformation()
 
         self._cloneInformation = cast(CloneInformation, None)  # noqa
-
-    async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
-        """
-
-        Returns:  The platform specific dialog
-        """
-
-        dialogTitle:   str = 'Todoist Authentication'
-        dialogMessage: str = 'Authentication Failed. Please enter your Todoist API Token:'
-        initialToken:  str = self._preferences.todoistAPIToken
-
-        if sysPlatform == AppCommon.PLATFORM_IOS:
-            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        elif sysPlatform == AppCommon.PLATFORM_MAC:
-            authDialog = AuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        else:
-            assert False, 'Unsupported platform'
-
-        return authDialog
 
