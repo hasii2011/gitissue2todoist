@@ -17,11 +17,41 @@ class IProgressDialog(ABC):
         """
         pass
 
+    @property
+    def position(self) -> Position:
+        """
+        Abstract write-only property for dialog position.
+        """
+        raise NotImplementedError('This property is write-only')
+
+    @position.setter
     @abstractmethod
-    def _setPosition(self, position: Position) -> None:
+    def position(self, newPosition: Position) -> None:
         pass
 
-    position = property(fset=_setPosition, doc='Abstract write-only property for dialog position.')
+    @property
+    def updateProgress(self) -> float:
+        """
+        Write-only property to set the progress bar current value.
+        """
+        raise NotImplementedError('This property is write-only')
+
+    @updateProgress.setter
+    @abstractmethod
+    def updateProgress(self, value: float) -> None:
+        pass
+
+    @property
+    def maxProgressValue(self) -> float:
+        """
+        Write-only property to set the progress bar maximum value.
+        """
+        raise NotImplementedError('This property is write-only')
+
+    @maxProgressValue.setter
+    @abstractmethod
+    def maxProgressValue(self, newValue: float) -> None:
+        pass
 
     @abstractmethod
     def updateMessage(self, message: str) -> None:

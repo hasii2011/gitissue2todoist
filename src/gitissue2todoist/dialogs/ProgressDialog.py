@@ -1,5 +1,7 @@
 
+from typing import cast
 from typing import Tuple
+from typing import SupportsFloat
 
 from toga import App
 from toga import Box
@@ -18,6 +20,8 @@ PROGRESS_BAR_WIDTH:  int             = 250
 PROGRESS_BOX_MARGIN: int             = 20
 WINDOW_SIZE:         Tuple[int, int] = (300, 100)
 
+INDETERMINATE_PROGRESS_MAX: SupportsFloat   = cast(SupportsFloat, cast(object, None))
+
 class ProgressDialog(IProgressDialog):
     """
     A desktop-compatible Progress Dialog overlay for Toga applications.
@@ -28,8 +32,9 @@ class ProgressDialog(IProgressDialog):
     ongoing background task.
     """
 
-    def __init__(self, title: str = 'Working...'):
+    def __init__(self, title: str = 'Working...', maxProgressValue: SupportsFloat = INDETERMINATE_PROGRESS_MAX):
         """
+
         Initializes the ProgressDialog UI components.
 
         Args:
@@ -41,8 +46,8 @@ class ProgressDialog(IProgressDialog):
         # Toga UI Elements
         self._statusLabel: Label = Label(text='Initializing...', style=Pack(margin_bottom=LABEL_MARGIN_BOTTOM))
         
-        # Indeterminate progress bar sweeps back and forth (max defaults to None)
-        self._progressBar: ProgressBar = ProgressBar(style=Pack(width=PROGRESS_BAR_WIDTH))
+        # Indeterminate progress bar sweeps back and forth (max defaults to 1.0)
+        self._progressBar: ProgressBar = ProgressBar(style=Pack(width=PROGRESS_BAR_WIDTH), max=maxProgressValue)
         
         self._progressBox: Box = Box(
             children=[self._statusLabel, self._progressBar],
@@ -58,10 +63,42 @@ class ProgressDialog(IProgressDialog):
         )
         self._progressWindow.content = self._progressBox
 
-    def _setPosition(self, position: Position):
-        self._progressWindow.position = position
+    @property
+    def position(self) -> Position:
+        """Write-only property to set the position of the dialog."""
+        raise NotImplementedError('This property is write-only')
 
-    position = property(fset=_setPosition, doc='Write-only property to set the position of the dialog.')
+    @position.setter
+    def position(self, newPosition: Position) -> None:
+        self._progressWindow.position = newPosition
+
+    @property
+    def updateProgress(self) -> float:
+        """Write-only property to set the progress bar current value."""
+        raise NotImplementedError('This property is write-only')
+
+    @updateProgress.setter
+    def updateProgress(self, value: float) -> None:
+        self._progressBar.value = value
+
+    @property
+    def maxProgressValue(self) -> float:
+        """
+        Write-only property to set the progress bar maximum value.
+        """
+        raise NotImplementedError('This property is write-only')
+
+    @maxProgressValue.setter
+    def maxProgressValue(self, newValue: float) -> None:
+        """
+        Kills the sweeping animation so it can accept values!
+
+        Args:
+            newValue:
+
+        """
+        self._progressBar.stop()
+        self._progressBar.max = newValue
 
     def showDialog(self) -> None:
         """

@@ -87,8 +87,16 @@ class UICommon:
             selection._impl.native.resignFirstResponder()
 
     @classmethod
-    def setupProgressDialog(cls, title: str) -> IProgressDialog:
+    def setupProgressDialog(cls, title: str, maxProgressValue: float | None = None) -> IProgressDialog:
         """
+        Creates, configures, and displays the platform-specific progress dialog.
+        
+        If a maxProgressValue is provided, the progress bar will be initialized as determinate
+        before being shown, preventing it from getting locked into an indeterminate sweeping animation.
+
+        Args:
+            title: The text to display as the dialog's title.
+            maxProgressValue: An optional maximum float value for the progress bar. If None, it initializes as indeterminate.
 
         Returns:  The platform specific dialog
         """
@@ -108,6 +116,9 @@ class UICommon:
             dlg = IOSProgressDialog(title=title)
         else:
             assert False, 'Unsupported platform'
+
+        if maxProgressValue is not None:
+            dlg.maxProgressValue = maxProgressValue
 
         dlg.showDialog()
 

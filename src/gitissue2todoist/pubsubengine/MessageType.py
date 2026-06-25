@@ -9,4 +9,4 @@ class MessageType(StrEnum):
 
     TASK_CREATION_COMPLETE      = 'Task Creation Complete'
 
-    MULTIPLE_REPOSITORIES_SELECTED = 'Multiple Repositories Selected'
+    RETRIEVE_OWNER_ISSUES = 'Retrieve Owner Issues'

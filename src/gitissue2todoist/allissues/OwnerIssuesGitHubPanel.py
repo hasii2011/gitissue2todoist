@@ -9,9 +9,10 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.AppCommon import AppCommon
-from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepositoryIssues
-from gitissue2todoist.SingleRepositoryIssues import SingleRepositoryIssues
 from gitissue2todoist.UICommon import UICommon
+
+from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepositoryIssues
+from gitissue2todoist.allissues.MultiRepositoryIssues import MultiRepositoryIssues
 
 from gitissue2todoist.allissues.UserRepositoriesPanel import UserRepositoriesPanel
 from gitissue2todoist.preferences.Preferences import Preferences
@@ -41,7 +42,7 @@ class OwnerIssuesGitHubPanel(Box):
             repositoryIssues = MobileSingleRepositoryIssues(pubSubEngine=self._pubSubEngine)  # temp so I can test it
         else:
             if sysPlatform == AppCommon.PLATFORM_MAC:
-                repositoryIssues = SingleRepositoryIssues(pubSubEngine=self._pubSubEngine)
+                repositoryIssues = MultiRepositoryIssues(pubSubEngine=self._pubSubEngine)
             elif sysPlatform == AppCommon.PLATFORM_IOS:
                 repositoryIssues = MobileSingleRepositoryIssues(pubSubEngine=self._pubSubEngine)
             else:

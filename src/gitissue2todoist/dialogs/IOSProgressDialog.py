@@ -35,10 +35,32 @@ class IOSProgressDialog(IProgressDialog):
         
         self._originalContent: Box | None = None
 
-    def _setPosition(self, position: Position) -> None:
+    @property
+    def position(self) -> Position:
+        """No-op write-only property to satisfy IProgressDialog."""
+        raise NotImplementedError('This property is write-only')
+
+    @position.setter
+    def position(self, newPosition: Position) -> None:
         raise NotImplementedError('Explicitly setting dialog positions is not supported on iOS.')
 
-    position = property(fset=_setPosition, doc='No-op write-only property to satisfy IProgressDialog.')
+    @property
+    def updateProgress(self) -> float:
+        """Write-only property to set the progress bar current value."""
+        raise NotImplementedError('This property is write-only')
+
+    @updateProgress.setter
+    def updateProgress(self, value: float) -> None:
+        self._progressBar.value = value
+
+    @property
+    def maxProgressValue(self) -> float:
+        """Write-only property to set the progress bar maximum value."""
+        raise NotImplementedError('This property is write-only')
+
+    @maxProgressValue.setter
+    def maxProgressValue(self, newValue: float) -> None:
+        self._progressBar.max = newValue
 
     def showDialog(self) -> None:
         """

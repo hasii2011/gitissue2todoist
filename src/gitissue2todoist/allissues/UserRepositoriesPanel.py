@@ -172,10 +172,22 @@ class UserRepositoriesPanel(Box):
 
         selectedRepositories: SelectedRepositories = self.selectedRepositories
 
-        self._pubSubEngine.sendMessage(MessageType.MULTIPLE_REPOSITORIES_SELECTED, repositories=selectedRepositories)
+        self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
 
     # noinspection PyUnusedLocal
     async def _onRetrieve(self, widget):
+        """
+        Calls the GitHub adapter with the issue owner name and a list of
+        selected repositories to get the issues assigned to this owner.  Because this is
+        a potentially expensive operation we run it async and update a progress dialog
+        for the application user
+
+        TODO: The code to retrieve the issues belongs MultiRepositoryIsses and it mobile
+        companion.  We should just publish the selected repositories
+        Args:
+            widget:
+
+        """
 
         selectedRepositories: SelectedRepositories = self.selectedRepositories
 
@@ -186,15 +198,24 @@ class UserRepositoriesPanel(Box):
         def _threadSafeCallback(status: IntermediateStatus):
 
             msg: str = f'Processed {status.currentRepoCount}/{status.totalNumberOfRepos}: {status.nameOfRepoJustProcessed}'
+
+            def updateUI(uiMsg: str, uiCount: float):
+                self._progressDlg.updateMessage(uiMsg)
+                self._progressDlg.updateProgress = uiCount
+
+            loop.call_soon_threadsafe(updateUI, msg, float(status.currentRepoCount))
+
             self.logger.info(f'{msg}')
-            loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
 
         loop: AbstractEventLoop = get_running_loop()
         while True:
             # We instantiate this every time so it grabs the freshest API token
             githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
-            self._progressDlg = UICommon.setupProgressDialog(title='Retrieving Issues...')
+            self._progressDlg = UICommon.setupProgressDialog(
+                title='Retrieving Issues...',
+                maxProgressValue=float(len(selectedRepositories))
+            )
 
             try:
                 # Execute task creation in a background thread; We don't need a frozen UI
@@ -207,7 +228,7 @@ class UserRepositoriesPanel(Box):
 
                 self._progressDlg.destroy()
                 self.logger.debug(f'{retrievedIssues}')
-                self._pubSubEngine.sendMessage(MessageType.MULTIPLE_REPOSITORIES_SELECTED, repositories=selectedRepositories)
+                self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
 
                 break  # Exit loop on success
             except AdapterAuthenticationError as e:
