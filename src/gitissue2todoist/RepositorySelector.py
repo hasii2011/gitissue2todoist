@@ -4,8 +4,6 @@ from logging import getLogger
 
 from sys import platform as sysPlatform
 
-from asyncio import to_thread
-
 from toga import Box
 from toga import ErrorDialog
 from toga import Label
@@ -23,9 +21,9 @@ from gitissue2todoist.general.exceptions.AdapterAuthenticationError import Adapt
 
 from gitissue2todoist.preferences.Preferences import Preferences
 
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import Slugs
+from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
 
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
@@ -50,7 +48,7 @@ class RepositorySelector(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: HttpxGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        self._githubAdapter: AsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
         repositoryLabel:           Label     = UICommon.createStandardSectionTitle('Repositories')
         self._repositorySelection: Selection = Selection()
@@ -62,7 +60,7 @@ class RepositorySelector(Box):
 
     async def loadRepositoriesSelectionList(self):
         try:
-            repoNames: Slugs = await to_thread(self._githubAdapter.getRepositoryNames)
+            repoNames: Slugs = await self._githubAdapter.getRepositoryNames()
             repoNames.sort()
             repoNames.insert(0, NO_SELECTION_SLUG)
 
@@ -95,7 +93,7 @@ class RepositorySelector(Box):
             # Save the new token into preferences
             self._preferences.gitHubAPIToken = authDialog.apiToken
             # Re-initialize the adapter with the new token
-            self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+            self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
             # Try again!
             await self.loadRepositoriesSelectionList()
 
