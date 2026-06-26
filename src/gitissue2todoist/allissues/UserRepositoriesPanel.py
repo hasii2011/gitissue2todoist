@@ -22,9 +22,6 @@ from toga.style.pack import COLUMN
 from toga.sources import Row
 
 from gitissue2todoist.UICommon import UICommon
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
 from gitissue2todoist.adapters.IGitHubAdapter import Slug
 
 from gitissue2todoist.adapters.IGitHubAdapter import Slugs
@@ -175,7 +172,7 @@ class UserRepositoriesPanel(Box):
         self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
 
     # noinspection PyUnusedLocal
-    async def _onRetrieve(self, widget):
+    def _onRetrieve(self, widget):
         """
         Calls the GitHub adapter with the issue owner name and a list of
         selected repositories to get the issues assigned to this owner.  Because this is
@@ -191,68 +188,7 @@ class UserRepositoriesPanel(Box):
 
         selectedRepositories: SelectedRepositories = self.selectedRepositories
 
-        from asyncio import AbstractEventLoop
-        from asyncio import get_running_loop
-        from asyncio import to_thread
-
-        def _threadSafeCallback(status: IntermediateStatus):
-
-            msg: str = f'Processed {status.currentRepoCount}/{status.totalNumberOfRepos}: {status.nameOfRepoJustProcessed}'
-
-            def updateUI(uiMsg: str, uiCount: float):
-                self._progressDlg.updateMessage(uiMsg)
-                self._progressDlg.updateProgress = uiCount
-
-            loop.call_soon_threadsafe(updateUI, msg, float(status.currentRepoCount))
-
-            self.logger.info(f'{msg}')
-
-        loop: AbstractEventLoop = get_running_loop()
-        while True:
-            # We instantiate this every time so it grabs the freshest API token
-            githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
-
-            self._progressDlg = UICommon.setupProgressDialog(
-                title='Retrieving Issues...',
-                maxProgressValue=float(len(selectedRepositories))
-            )
-
-            try:
-                # Execute task creation in a background thread; We don't need a frozen UI
-                retrievedIssues: AbbreviatedGitIssues = await to_thread(
-                    githubAdapter.getIssuesAssignedToOwner,
-                        slugs = selectedRepositories,
-                        issueOwner = IssueOwner(self._preferences.gitHubUserName),
-                        callback = _threadSafeCallback
-                )
-
-                self._progressDlg.destroy()
-                self.logger.debug(f'{retrievedIssues}')
-                self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
-
-                break  # Exit loop on success
-            except AdapterAuthenticationError as e:
-                self._progressDlg.destroy()
-                self.logger.error(f'{e=}')
-
-                authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
-                    dialogTitle='GitHub Authentication Failed',
-                    dialogMessage='Enter GitHub Credentials;  Only need the user name for strategy all',
-                    apiToken=self._preferences.gitHubAPIToken,
-                    gitHubUserName=self._preferences.gitHubUserName
-                )
-                okPressed:  bool = await authDialog.showDialog()
-
-                if okPressed:
-                    # Save the new token into preferences and retry the loop
-                    self._preferences.gitHubAPIToken = authDialog.apiToken
-                    continue
-                else:
-                    break  # User canceled, exit loop
-            except Exception as ue:
-                self._progressDlg.destroy()
-                await self._handleGeneralError(error=ue)
-                break
+        self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
 
     async def _handleGeneralError(self, error: Exception):
         """
