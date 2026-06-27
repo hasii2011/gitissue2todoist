@@ -8,11 +8,11 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.UICommon import UICommon
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
-from gitissue2todoist.adapters.IGitHubAdapter import Slugs
+from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.preferences.Preferences import Preferences
@@ -132,14 +132,12 @@ class MultiRepositoryIssues(Box):
             indicating if the operation should be attempted again with new credentials, and the
             `retrievedIssues` if the operation was successful.
         """
-        from asyncio import to_thread
         
         # We instantiate this every time so it grabs the freshest API token
-        githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
         
         try:
-            retrievedIssues: AbbreviatedGitIssues = await to_thread(
-                githubAdapter.getIssuesAssignedToOwner,
+            retrievedIssues: AbbreviatedGitIssues = await githubAdapter.getIssuesAssignedToOwner(
                 slugs=repositories,
                 issueOwner=IssueOwner(self._preferences.gitHubUserName),
                 callback=threadSafeCallback
