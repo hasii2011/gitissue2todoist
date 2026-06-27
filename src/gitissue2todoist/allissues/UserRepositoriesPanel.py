@@ -22,10 +22,10 @@ from toga.style.pack import COLUMN
 from toga.sources import Row
 
 from gitissue2todoist.UICommon import UICommon
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
 
-from gitissue2todoist.adapters.IGitHubAdapter import Slugs
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
+from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
@@ -72,13 +72,12 @@ class UserRepositoriesPanel(Box):
         self.add(self._createButtons())
 
     async def loadRepositories(self):
-        from asyncio import to_thread
         # We instantiate this every time so it grabs the freshest API token
         while True:
-            githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+            githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
             try:
-                repoNames: Slugs = await to_thread(githubAdapter.getRepositoryNames)
+                repoNames: Slugs = await githubAdapter.getRepositoryNames()
                 repoNames.sort()
 
                 self._repositoryList.data = repoNames
