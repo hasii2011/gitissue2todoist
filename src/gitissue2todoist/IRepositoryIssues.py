@@ -3,19 +3,23 @@ from typing import Dict
 from typing import List
 from typing import Union
 from typing import NewType
+from typing import Optional
 
 from abc import ABC
 from abc import abstractmethod
 
+from toga import Window
+from toga import ErrorDialog
+
 from gitissue2todoist.preferences.Preferences import Preferences
 
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import IGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import IAsyncGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
@@ -54,7 +58,7 @@ class IRepositoryIssues(ABC):
         """
         pass
 
-    def _getIssueData(self, repositoryName: Slug, milestoneTitle: str) -> IssueData:
+    async def _getIssueData(self, repositoryName: Slug, milestoneTitle: str) -> IssueData:
         """
         Queries GitHub and synthesizes abbreviated Git Issues and a list of synthetic
         dictionaries usable to display on either Mac OS X or IOS
@@ -65,9 +69,9 @@ class IRepositoryIssues(ABC):
         Returns:  A list of data row dictionaries
 
         """
-        gitHubAdapter: IGitHubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        gitHubAdapter: IAsyncGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
-        gitIssues: AbbreviatedGitIssues = gitHubAdapter.getAbbreviatedIssues(
+        gitIssues: AbbreviatedGitIssues = await gitHubAdapter.getAbbreviatedIssues(
             repoName=repositoryName,
             milestoneTitle=milestoneTitle
         )
@@ -123,3 +127,16 @@ class IRepositoryIssues(ABC):
             taskInfolist.append(taskInfo)
 
         return taskInfolist
+
+    async def displayFatalError(self, window: Optional[Window], errorType: str) -> None:
+        """
+        Displays a fatal error dialog.
+
+        Args:
+            window:
+            errorType:
+        """
+        assert window is not None
+        errorMessage: str = f'You got an {errorType} error.\n\nPlease exit the application and restart it.'
+        # noinspection PyUnresolvedReferences
+        await window.dialog(dialog=ErrorDialog(title='Fatal Error', message=errorMessage))

@@ -16,21 +16,25 @@ from gitissue2todoist.IRepositoryIssues import ISSUE_TITLE_KEY
 from gitissue2todoist.IRepositoryIssues import IssueData
 from gitissue2todoist.IRepositoryIssues import IssueDataRow
 
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
 from gitissue2todoist.components.MobileMultiSelect import SelectedValues
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
+from gitissue2todoist.adapters.GitHubServiceUnavailableError import GitHubServiceUnavailableError
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 
 
 class MobileSingleRepositoryIssues(Box, IRepositoryIssues):
@@ -105,19 +109,33 @@ class MobileSingleRepositoryIssues(Box, IRepositoryIssues):
 
     def _selectedMilestoneChangedListener(self, repositoryName: Slug, milestoneTitle: MilestoneTitle):
 
-        issueData: IssueData = self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
-        self.logger.debug(f'{issueData=}')
+        import asyncio
+        asyncio.create_task(self._fetchIssuesAsync(repositoryName=repositoryName, milestoneTitle=milestoneTitle))
 
-        values: MultiSelectValues = MultiSelectValues([])
+    async def _fetchIssuesAsync(self, repositoryName: Slug, milestoneTitle: MilestoneTitle) -> None:
+        try:
+            issueData: IssueData = await self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
+            self.logger.debug(f'{issueData=}')
 
-        for issue in issueData:
-            issueDataRow: IssueDataRow = issue
-            values.append(cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY]).issueTitle)
+            values: MultiSelectValues = MultiSelectValues([])
 
-        self._issueData = issueData
-        self.logger.debug(f'values=')
-        self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, values)))
-        self._milestoneTitle = milestoneTitle
+            for issue in issueData:
+                issueDataRow: IssueDataRow = issue
+                values.append(cast(AbbreviatedGitIssue, issueDataRow[ISSUE_DATA_KEY]).issueTitle)
+
+            self._issueData = issueData
+            self.logger.debug(f'values=')
+            self._mobileMultiSelect.setValues(MultiSelectValues(cast(list, values)))
+            self._milestoneTitle = milestoneTitle
+        except AdapterAuthenticationError as e:
+            self.logger.error(f'Authentication failed when fetching issues: {e}')
+            await self.displayFatalError(window=self.window, errorType='Authentication')
+        except GitHubServiceUnavailableError as e:
+            self.logger.error(f'GitHub service unavailable: {e}')
+            await self.displayFatalError(window=self.window, errorType='Service Unavailable')
+        except GitHubConnectionError as e:
+            self.logger.error(f'Connection error when fetching issues: {e}')
+            await self.displayFatalError(window=self.window, errorType='Connection')
 
     def _selectedRepositoryChangedListener(self, repositoryName: Slug):
         """

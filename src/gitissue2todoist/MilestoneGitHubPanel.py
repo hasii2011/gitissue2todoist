@@ -1,15 +1,19 @@
 
 from typing import cast
 
+from typing import Optional
+
 from logging import Logger
 from logging import getLogger
 
 from sys import platform as sysPlatform
 
 from toga import Box
+from toga import ErrorDialog
 from toga import Label
 from toga import Widget
 from toga import Selection
+from toga import Window
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
@@ -22,12 +26,17 @@ from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepository
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
+
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
+from gitissue2todoist.adapters.GitHubServiceUnavailableError import GitHubServiceUnavailableError
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 
 
 class MilestoneGitHubPanel(Box):
@@ -40,7 +49,7 @@ class MilestoneGitHubPanel(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: HttpxGitHubAdapter = cast(HttpxGitHubAdapter, None)        # noqa
+        self._githubAdapter: AsyncHttpxGitHubAdapter = cast(AsyncHttpxGitHubAdapter, None)        # noqa
 
         mileStonesLabel: Label = UICommon.createStandardSectionTitle('Repository Milestone Titles')
         self._mileStoneSelection: Selection = Selection(
@@ -87,17 +96,47 @@ class MilestoneGitHubPanel(Box):
         """
         self._repositoryName = repositoryName
         self.logger.info(f'Time to load milestones for {repositoryName}')
-        self._githubAdapter = HttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
-        milestoneTitles: MilestoneTitles = self._githubAdapter.getMileStoneTitles(repoName=repositoryName)
+        from asyncio import create_task
+        create_task(self._fetchMilestoneTitlesAsync(repositoryName=repositoryName))
 
-        self._mileStoneSelection.items = milestoneTitles
+    async def _fetchMilestoneTitlesAsync(self, repositoryName: Slug) -> None:
+        try:
+            milestoneTitles: MilestoneTitles = await self._githubAdapter.getMileStoneTitles(repoName=repositoryName)
+            self._mileStoneSelection.items = milestoneTitles
+        except AdapterAuthenticationError as e:
+            self.logger.error(f'Authentication failed when fetching milestones: {e}')
+            await self._displayFatalError(window=self.window, errorType='Authentication')
+        except GitHubServiceUnavailableError as e:
+            self.logger.error(f'GitHub service unavailable: {e}')
+            await self._displayFatalError(window=self.window, errorType='Service Unavailable')
+        except GitHubConnectionError as e:
+            self.logger.error(f'Connection error when fetching milestones: {e}')
+            await self._displayFatalError(window=self.window, errorType='Connection')
 
+    # noinspection PyUnusedLocal
     def _onMilestoneSelectedHandler(self, widget):
 
-        selection: Selection = cast(Selection, widget)
-        mileStone: str = cast(str, selection.value)
-
-        self._pubSubEngine.sendMessage(messageType=MessageType.SELECTED_MILESTONE_CHANGED, repositoryName=self._repositoryName, milestoneTitle=mileStone)
+        selectedMilestoneTitle: MilestoneTitle = cast(MilestoneTitle, self._mileStoneSelection.value)
+        # noinspection PyTypeChecker
+        self.logger.info(f'{selectedMilestoneTitle=}')
+        self._pubSubEngine.sendMessage(
+            messageType=MessageType.SELECTED_MILESTONE_CHANGED,
+            repositoryName=self._repositoryName,
+            milestoneTitle=selectedMilestoneTitle
+        )
         UICommon.popDownPicker(selection=self._mileStoneSelection)
 
+    async def _displayFatalError(self, window: Optional[Window], errorType: str) -> None:
+        """
+        Displays a fatal error dialog.
+
+        Args:
+            window:
+            errorType:
+        """
+        assert window is not None
+        errorMessage: str = f'You got an {errorType} error.\n\nPlease exit the application and restart it.'
+        # noinspection PyUnresolvedReferences
+        await window.dialog(dialog=ErrorDialog(title='Fatal Error', message=errorMessage))

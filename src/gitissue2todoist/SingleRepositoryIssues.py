@@ -21,15 +21,19 @@ from gitissue2todoist.IRepositoryIssues import REPOSITORY_NAME_NOT_SET
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
 
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
+from gitissue2todoist.adapters.GitHubServiceUnavailableError import GitHubServiceUnavailableError
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 
 
 class SingleRepositoryIssues(Box, IRepositoryIssues):
@@ -129,12 +133,27 @@ class SingleRepositoryIssues(Box, IRepositoryIssues):
         """
         assert repositoryName == self._repositoryName, 'They should match'
         self._milestoneTitle = milestoneTitle
-        issueData: IssueData = self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
-        #
-        # Stuff the entire data and table magically figures out which item to sue via the 'columns' definition
-        # during its initialization
-        #
-        self._selectionTable.data = issueData
+
+        import asyncio
+        asyncio.create_task(self._fetchIssuesAsync(repositoryName=repositoryName, milestoneTitle=milestoneTitle))
+
+    async def _fetchIssuesAsync(self, repositoryName: Slug, milestoneTitle: MilestoneTitle) -> None:
+        try:
+            issueData: IssueData = await self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
+            #
+            # Stuff the entire data and table magically figures out which item to sue via the 'columns' definition
+            # during its initialization
+            #
+            self._selectionTable.data = issueData
+        except AdapterAuthenticationError as e:
+            self.logger.error(f'Authentication failed when fetching issues: {e}')
+            await self.displayFatalError(window=self.window, errorType='Authentication')
+        except GitHubServiceUnavailableError as e:
+            self.logger.error(f'GitHub service unavailable: {e}')
+            await self.displayFatalError(window=self.window, errorType='Service Unavailable')
+        except GitHubConnectionError as e:
+            self.logger.error(f'Connection error when fetching issues: {e}')
+            await self.displayFatalError(window=self.window, errorType='Connection')
 
     def _selectedRepositoryChangedListener(self, repositoryName: Slug):
         """
