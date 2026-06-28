@@ -159,6 +159,7 @@ class UserRepositoriesPanel(Box):
         Safely grab the native NSTableView and trigger the OS-level 'Select All' action
 
         This OSX specific
+
         Args:
             widget:
 

@@ -1,16 +1,24 @@
 
+from typing import cast
 from typing import Dict
 from typing import List
-from typing import NewType
 from typing import Union
+from typing import NewType
+from typing import Callable
 
 from logging import Logger
 from logging import getLogger
 
+from dataclasses import dataclass
+
 from toga import Box
+from toga import Button
 from toga import Table
+from toga import Widget
 from toga.style import Pack
+
 from toga.style.pack import COLUMN
+from toga.style.pack import ROW
 
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
@@ -27,8 +35,6 @@ from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 
-from typing import Callable
-from dataclasses import dataclass
 from asyncio import AbstractEventLoop
 
 @dataclass
@@ -37,12 +43,12 @@ class RetrievalResult:
     retrievedIssues: AbbreviatedGitIssues | None
 
 IssueDataRow = NewType('IssueDataRow', Dict[str, Union[str, AbbreviatedGitIssue]])
-
-IssueData = NewType('IssueData', List[IssueDataRow])
-
-IssueKey    = NewType('IssueKey', str)
+IssueData    = NewType('IssueData',    List[IssueDataRow])
+IssueKey     = NewType('IssueKey', str)
 
 ISSUE_DATA_KEY:  IssueKey = IssueKey('abbreviatedGitIssue')
+ISSUE_SLUG_KEY:  IssueKey = IssueKey('issueSlug')
+ISSUE_TITLE_KEY: IssueKey = IssueKey('issueTitle')
 
 
 class MultiRepositoryIssues(Box):
@@ -59,18 +65,19 @@ class MultiRepositoryIssues(Box):
 
         self._issueTable: Table = Table(
             columns=['issueSlug', 'issueTitle'],
-            accessors=['issueSlug', 'issueTitle'],
+            accessors=[ISSUE_SLUG_KEY, ISSUE_TITLE_KEY],
             multiple_select=True,
-            show_headings=False,
+            show_headings=True,
             style=Pack(flex=1),
-            data=[
-                ('hasii2011/pytrek', 'Game is AI smart'),
-                ('hasii2011/umldiagrammer', 'True round trip engineering'),
-                ('hasii2011/umlshapes', 'Super smart shapes'),
-            ]
+            data=[],
+            on_select = self._onIssueSelected
         )
 
+        self._cloneButton:     Button               = cast(Button, None)                # noqa
+        self._retrievedIssues: AbbreviatedGitIssues = cast(AbbreviatedGitIssues, None)  # noqa
+
         self.add(self._issueTable)
+        self.add(self._createButtons())
 
         self._pubSubEngine.subscribe(MessageType.RETRIEVE_OWNER_ISSUES, listener=self._retrieveOwnerIssuesListener)
 
@@ -98,12 +105,14 @@ class MultiRepositoryIssues(Box):
                     issueTitle:   str          = gitIssue.issueTitle
                     issueDataRow: IssueDataRow = IssueDataRow({})
 
-                    issueDataRow['issueSlug']  = issueSlug
-                    issueDataRow['issueTitle'] = issueTitle
+                    issueDataRow[ISSUE_SLUG_KEY]  = issueSlug
+                    issueDataRow[ISSUE_TITLE_KEY] = issueTitle
 
-                    issueDataRow[ISSUE_DATA_KEY]  = gitIssue
+                    issueDataRow[ISSUE_DATA_KEY] = gitIssue
 
                     issueData.append(issueDataRow)
+
+                self._retrievedIssues = retrievedIssues
                 self._issueTable.data = issueData
 
         create_task(_runAndProcess())
@@ -213,3 +222,47 @@ class MultiRepositoryIssues(Box):
 
         loop.call_soon_threadsafe(updateUI, msg, float(status.currentRepoCount))
         self.logger.info(f'{msg}')
+
+    def _createButtons(self) -> Box:
+        """
+        Modifies:
+                self._cloneButton
+
+        Returns:  The container for appropriate display in parent
+        """
+
+        selectAllButton: Button = Button('Select All', on_press=self._onSelectAll)
+        cloneButton:     Button = Button('Clone',      on_press=self._onClone, style=Pack(margin_left=10, margin_right=10))
+
+        cloneButton.enabled = False
+
+        spacerBox: Box = Box(style=Pack(flex=1))
+        buttonBox: Box = Box(children=[spacerBox, selectAllButton, cloneButton], style=Pack(direction=ROW, margin_top=10, margin_bottom=10))
+
+        self._cloneButton = cloneButton
+
+        return buttonBox
+
+    def _onClone(self, widget: Widget) -> None:
+        pass
+
+    # noinspection PyUnusedLocal
+    def _onIssueSelected(self, repositoryList: Table) -> None:
+        self._cloneButton.enabled = True
+
+    # noinspection PyUnusedLocal
+    def _onSelectAll(self, widget: Widget) -> None:
+        """
+        Access the underlying native macOS NSTableView and call selectAll_
+
+        Safely grab the native NSTableView and trigger the OS-level 'Select All' action
+
+        This OSX specific
+
+        Args:
+            widget:
+
+        """
+        # noinspection PyProtectedMember
+        self._issueTable._impl.native.documentView.selectAll_(None)
+        self._cloneButton.enabled = True

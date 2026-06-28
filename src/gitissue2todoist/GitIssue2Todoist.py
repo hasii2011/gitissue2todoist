@@ -96,6 +96,11 @@ class GitIssue2Todoist(App):
                 mainContainer.add(gitHubContainer)
 
             elif self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.ALL_ISSUES_ASSIGNED_TO_USER:
+                if sysPlatform == AppCommon.PLATFORM_MAC:
+                    newWindowWidth:  int = self._preferences.startupSize.width
+                    newWindowHeight: int = self._preferences.startupSize.height
+                    self.main_window.size = (newWindowWidth, newWindowHeight)
+
                 self._ownerIssuesGitHubPanel = OwnerIssuesGitHubPanel(pubSubEngine=self._pubSubEngine)
                 mainContainer.add(self._ownerIssuesGitHubPanel)
             else:
