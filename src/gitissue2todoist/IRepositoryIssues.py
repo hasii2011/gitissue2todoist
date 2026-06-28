@@ -11,6 +11,7 @@ from abc import abstractmethod
 from toga import Window
 from toga import ErrorDialog
 
+from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
@@ -23,7 +24,7 @@ from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
-from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
+
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 
 SelectedIssues = NewType('SelectedIssues', List[str])
@@ -96,37 +97,11 @@ class IRepositoryIssues(ABC):
         cloneInformation.repositoryTask    = self._repositoryName
         cloneInformation.milestoneNameTask = self._milestoneTitle
 
-        tasksToClone: TaskInfoList = self._convertToTasksToClone(abbreviatedGitIssues=selectedIssues)
+        tasksToClone: TaskInfoList = TodoistCommon.toTaskInfoList(abbreviatedGitIssues=selectedIssues)
 
         cloneInformation.tasksToClone = tasksToClone
 
         return cloneInformation
-
-    def _convertToTasksToClone(self, abbreviatedGitIssues: AbbreviatedGitIssues) -> TaskInfoList:
-        """
-
-        Args:
-            abbreviatedGitIssues:
-
-        Returns:
-
-        """
-
-        taskInfolist: TaskInfoList = TaskInfoList([])
-
-        for abbreviatedGitIssue in abbreviatedGitIssues:
-
-            simpleGitIssue: AbbreviatedGitIssue = abbreviatedGitIssue
-
-            taskInfo: TaskInfo = TaskInfo()
-            taskInfo.gitIssueName = simpleGitIssue.issueTitle
-            taskInfo.gitIssueURL  = simpleGitIssue.issueHTMLURL
-            taskInfo.slug         = simpleGitIssue.slug
-            taskInfo.labels       = simpleGitIssue.labels.copy()
-
-            taskInfolist.append(taskInfo)
-
-        return taskInfolist
 
     async def displayFatalError(self, window: Optional[Window], errorType: str) -> None:
         """
