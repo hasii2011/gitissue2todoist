@@ -77,7 +77,7 @@ class SingleRepositoryIssues(Box, IRepositoryIssues):
         Returns: A list of selected values were toggled ON.
         """
         selectedIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
-        # Cast explicitly informs type checkers that multiple_select=True returns a List[Row]
+        # Cast explicitly to tell type checkers that multiple_select=True returns a List[Row]
         selectedRows: List[Row] = cast(List[Row], self._selectionTable.selection)
 
         if selectedRows:

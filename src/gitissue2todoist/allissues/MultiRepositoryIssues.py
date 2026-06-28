@@ -20,6 +20,7 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
+from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
@@ -36,6 +37,10 @@ from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 
 from asyncio import AbstractEventLoop
+
+from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
+
 
 @dataclass
 class RetrievalResult:
@@ -74,12 +79,35 @@ class MultiRepositoryIssues(Box):
         )
 
         self._cloneButton:     Button               = cast(Button, None)                # noqa
+        self._selectAllButton: Button               = cast(Button, None)                # noqa
         self._retrievedIssues: AbbreviatedGitIssues = cast(AbbreviatedGitIssues, None)  # noqa
 
         self.add(self._issueTable)
         self.add(self._createButtons())
 
         self._pubSubEngine.subscribe(MessageType.RETRIEVE_OWNER_ISSUES, listener=self._retrieveOwnerIssuesListener)
+
+    @property
+    def selectedIssues(self) -> AbbreviatedGitIssues:
+
+        from toga.sources import Row
+
+        selectedIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
+
+        # Cast explicitly to tell type checkers that multiple_select=True returns a List[Row]
+        selectedRows: List[Row] = cast(List[Row], self._issueTable.selection)
+        if selectedRows:
+            for row in selectedRows:
+                togaRow: Row = row
+                # Use getattr to bypass static type checker warnings for dynamic Row attributes
+                abbreviatedGitIssue: AbbreviatedGitIssue = getattr(togaRow, ISSUE_DATA_KEY)
+
+                self.logger.debug(f'Currently selected: {abbreviatedGitIssue}')
+                selectedIssues.append(abbreviatedGitIssue)
+        else:
+            self.logger.warning('Nothing selected.')
+
+        return selectedIssues
 
     def _retrieveOwnerIssuesListener(self, repositories: Slugs):
         """
@@ -116,6 +144,7 @@ class MultiRepositoryIssues(Box):
                 self._issueTable.data = issueData
 
         create_task(_runAndProcess())
+        self._selectAllButton.enabled = True
 
     async def _doRetrieval(self, repositories: Slugs) -> AbbreviatedGitIssues | None:
         """
@@ -227,6 +256,7 @@ class MultiRepositoryIssues(Box):
         """
         Modifies:
                 self._cloneButton
+                self._selectAllButton
 
         Returns:  The container for appropriate display in parent
         """
@@ -234,17 +264,27 @@ class MultiRepositoryIssues(Box):
         selectAllButton: Button = Button('Select All', on_press=self._onSelectAll)
         cloneButton:     Button = Button('Clone',      on_press=self._onClone, style=Pack(margin_left=10, margin_right=10))
 
-        cloneButton.enabled = False
+        selectAllButton.enabled = False
+        cloneButton.enabled     = False
 
         spacerBox: Box = Box(style=Pack(flex=1))
         buttonBox: Box = Box(children=[spacerBox, selectAllButton, cloneButton], style=Pack(direction=ROW, margin_top=10, margin_bottom=10))
 
-        self._cloneButton = cloneButton
+        self._selectAllButton = selectAllButton
+        self._cloneButton     = cloneButton
 
         return buttonBox
 
+    # noinspection PyUnusedLocal
     def _onClone(self, widget: Widget) -> None:
-        pass
+
+        ci: CloneInformation = self._createCloneInformation()
+
+        self._pubSubEngine.sendMessage(MessageType.CLONE_ISSUES, cloneInformation=ci)
+        #
+        self._issueTable.data         = []
+        self._cloneButton.enabled     = False
+        self._selectAllButton.enabled = False
 
     # noinspection PyUnusedLocal
     def _onIssueSelected(self, repositoryList: Table) -> None:
@@ -266,3 +306,17 @@ class MultiRepositoryIssues(Box):
         # noinspection PyProtectedMember
         self._issueTable._impl.native.documentView.selectAll_(None)
         self._cloneButton.enabled = True
+
+    def _createCloneInformation(self) -> CloneInformation:
+
+        selectedIssues: AbbreviatedGitIssues = self.selectedIssues
+
+        cloneInformation: CloneInformation = CloneInformation()
+        cloneInformation.repositoryTask    = 'Repository Task ignored for this strategy'
+        cloneInformation.milestoneNameTask = 'Milestone Name Task ignored for this strategy'
+
+        tasksToClone: TaskInfoList = TodoistCommon.toTaskInfoList(abbreviatedGitIssues=selectedIssues)
+
+        cloneInformation.tasksToClone = tasksToClone
+
+        return cloneInformation

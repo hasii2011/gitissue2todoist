@@ -34,6 +34,7 @@ from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.pubsubengine.MessageType import MessageType
+from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 REPOSITORY_TITLE_KEY: str = 'repository'
 
@@ -70,6 +71,12 @@ class UserRepositoriesPanel(Box):
         self.add(allUserRepositoriesLabel)
         self.add(self._repositoryList)
         self.add(self._createButtons())
+
+        #
+        # Going to listen to this so I can clear my selection
+        #
+        self._pubSubEngine.subscribe(MessageType.CLONE_ISSUES, self._cloneIssuesListener)
+
 
     async def loadRepositories(self):
         # We instantiate this every time so it grabs the freshest API token
@@ -201,3 +208,23 @@ class UserRepositoriesPanel(Box):
             message=message
         )
         await self._showDialog(dialog=dlg)
+
+    # noinspection PyUnusedLocal
+    def _cloneIssuesListener(self, cloneInformation: CloneInformation) -> None:
+        """
+        Listening to this so I can clear my selection
+
+        Access the underlying native macOS NSTableView and call selectAll_
+
+        Safely grab the native NSTableView and trigger the OS-level 'Select All' action
+
+        This OSX specific
+            The None parameter is being passed as the sender argument to the underlying macOS Objective-C method.
+            The sender represents the UI component (like a button, menu item, or keyboard shortcut) that triggered the action.
+            Passing None translates to nil in Objective-C
+            Safe way to tell macOS, I am triggering this action programmatically; there is no sender.
+        Args:
+            cloneInformation
+        """
+        # noinspection PyProtectedMember
+        self._repositoryList._impl.native.documentView.deselectAll_(None)
