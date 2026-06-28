@@ -141,7 +141,7 @@ class SingleRepositoryIssues(Box, IRepositoryIssues):
         try:
             issueData: IssueData = await self._getIssueData(repositoryName=repositoryName, milestoneTitle=milestoneTitle)
             #
-            # Stuff the entire data and table magically figures out which item to sue via the 'columns' definition
+            # Stuff the entire data and table magically figures out which item to use via the 'columns' definition
             # during its initialization
             #
             self._selectionTable.data = issueData

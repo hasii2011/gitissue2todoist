@@ -1,4 +1,9 @@
 
+from typing import Dict
+from typing import List
+from typing import NewType
+from typing import Union
+
 from logging import Logger
 from logging import getLogger
 
@@ -9,13 +14,16 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
 from gitissue2todoist.adapters.IAsyncGitHubAdapter import IntermediateStatus
 from gitissue2todoist.adapters.IAsyncGitHubAdapter import IssueOwner
 from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
+
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.preferences.Preferences import Preferences
+
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 
@@ -27,6 +35,14 @@ from asyncio import AbstractEventLoop
 class RetrievalResult:
     shouldRetry:     bool
     retrievedIssues: AbbreviatedGitIssues | None
+
+IssueDataRow = NewType('IssueDataRow', Dict[str, Union[str, AbbreviatedGitIssue]])
+
+IssueData = NewType('IssueData', List[IssueDataRow])
+
+IssueKey    = NewType('IssueKey', str)
+
+ISSUE_DATA_KEY:  IssueKey = IssueKey('abbreviatedGitIssue')
 
 
 class MultiRepositoryIssues(Box):
@@ -42,7 +58,8 @@ class MultiRepositoryIssues(Box):
         self._preferences:  Preferences   = Preferences()
 
         self._issueTable: Table = Table(
-            columns=['Repository', 'Issue'],
+            columns=['issueSlug', 'issueTitle'],
+            accessors=['issueSlug', 'issueTitle'],
             multiple_select=True,
             show_headings=False,
             style=Pack(flex=1),
@@ -61,7 +78,7 @@ class MultiRepositoryIssues(Box):
         """
         The listener that knows how to retrieve all issues across the published
         repositories
-        Spawns an async task
+        Spawns an async task;  Once complete reload the issue table
 
         Args:
             repositories:
@@ -74,7 +91,20 @@ class MultiRepositoryIssues(Box):
             if retrievedIssues is not None:
                 self.logger.info(f"Successfully captured {len(retrievedIssues)} issues!")
                 # TODO: Update UI with retrievedIssues
-                pass
+                issueData: IssueData = IssueData([])
+                for issue in retrievedIssues:
+                    gitIssue: AbbreviatedGitIssue = issue
+                    issueSlug:    str          = gitIssue.slug
+                    issueTitle:   str          = gitIssue.issueTitle
+                    issueDataRow: IssueDataRow = IssueDataRow({})
+
+                    issueDataRow['issueSlug']  = issueSlug
+                    issueDataRow['issueTitle'] = issueTitle
+
+                    issueDataRow[ISSUE_DATA_KEY]  = gitIssue
+
+                    issueData.append(issueDataRow)
+                self._issueTable.data = issueData
 
         create_task(_runAndProcess())
 
