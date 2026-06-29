@@ -41,6 +41,7 @@ requires = [
     'codeallybasic>=1.40.0',
     'Pypubsub==4.0.7',
     'todoist-api-python>=4.0.0',
+    'requests>=2.34.2',
 ]
 test_requires = [
     "pytest",
