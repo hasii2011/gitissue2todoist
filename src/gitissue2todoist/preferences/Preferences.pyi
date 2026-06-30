@@ -19,3 +19,4 @@ class Preferences:
     taskCreationStrategy: TodoistTaskCreationStrategy
     debugMobileIssueSelector: bool
     debugMobilePreferencesDialog: bool
+    debugMobileAuthorizationDialog: bool

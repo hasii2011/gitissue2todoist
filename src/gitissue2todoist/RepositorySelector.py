@@ -98,21 +98,29 @@ class RepositorySelector(Box):
         self.logger.info('Dialog opened. Please complete authentication.')
         
         dialogTitle: str = 'GitHub Device Authorization'
+        authDialog:  IGitHubAuthDialog  # Declare the type hint here once
 
-        if sysPlatform == AppCommon.PLATFORM_IOS:
-            authDialog: IGitHubAuthDialog = IOSGithubAuthDialog(
-                title=dialogTitle,
-                clientId=clientId,
-                onSuccess=self._onAuthComplete
-            )
-        elif sysPlatform == AppCommon.PLATFORM_MAC:
-            authDialog = GitHubAuthDialog(
+        if self._preferences.debugMobileAuthorizationDialog:
+            authDialog = IOSGithubAuthDialog(
                 title=dialogTitle,
                 clientId=clientId,
                 onSuccess=self._onAuthComplete
             )
         else:
-            assert False, 'Unsupported platform'
+            if sysPlatform == AppCommon.PLATFORM_IOS:
+                authDialog = IOSGithubAuthDialog(
+                    title=dialogTitle,
+                    clientId=clientId,
+                    onSuccess=self._onAuthComplete
+                )
+            elif sysPlatform == AppCommon.PLATFORM_MAC:
+                authDialog = GitHubAuthDialog(
+                    title=dialogTitle,
+                    clientId=clientId,
+                    onSuccess=self._onAuthComplete
+                )
+            else:
+                assert False, 'Unsupported platform'
 
         authDialog.show()
 
