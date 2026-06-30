@@ -16,11 +16,11 @@ from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IAsyncGitHubAdapter
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IAsyncHttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
@@ -70,7 +70,7 @@ class IRepositoryIssues(ABC):
         Returns:  A list of data row dictionaries
 
         """
-        gitHubAdapter: IAsyncGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        gitHubAdapter: IAsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
 
         gitIssues: AbbreviatedGitIssues = await gitHubAdapter.getAbbreviatedIssues(
             repoName=repositoryName,

@@ -23,8 +23,8 @@ from toga.sources import Row
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 

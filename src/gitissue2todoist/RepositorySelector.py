@@ -2,7 +2,10 @@
 from logging import Logger
 from logging import getLogger
 
-from sys import platform as sysPlatform
+from asyncio import create_task
+
+from requests import get
+from requests import Response
 
 from toga import Box
 from toga import ErrorDialog
@@ -12,28 +15,25 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.AppCommon import AppCommon
+from gitissue2todoist.githubauth.GithubAuthDialog import GithubAuthDialog
 from gitissue2todoist.UICommon import UICommon
-
-from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.preferences.Preferences import Preferences
 
+from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
-
-from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
-from gitissue2todoist.dialogs.AuthenticationDialog import AuthenticationDialog
-from gitissue2todoist.dialogs.IOSAuthenticationDialog import IOSAuthenticationDialog
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
-NO_SELECTION_INDICATOR: str = '--- Select Repository ---'
-NO_SELECTION_SLUG:     Slug = Slug(NO_SELECTION_INDICATOR)
+NO_SELECTION_INDICATOR: str  = '--- Select Repository ---'
+NO_SELECTION_SLUG:      Slug = Slug(NO_SELECTION_INDICATOR)
+
+GITHUB_CLIENT_ID: str = 'Ov23liHxUC2bdLShZn4h'
 
 class RepositorySelector(Box):
     """
@@ -66,7 +66,8 @@ class RepositorySelector(Box):
 
             self._repositorySelection.items = repoNames
         except AdapterAuthenticationError:
-            await self._handleAuthenticationError()
+            # await self._handleAuthenticationError()
+            await self._openAuthDialog()
         except GitHubConnectionError:
             await self._handleGitHubConnectionError()
 
@@ -83,46 +84,22 @@ class RepositorySelector(Box):
             self._pubSubEngine.sendMessage(messageType=MessageType.SELECTED_REPOSITORY_CHANGED, repositoryName=repositoryName)
             UICommon.popDownPicker(selection=self._repositorySelection)
 
-    async def _handleAuthenticationError(self):
+    async def _openAuthDialog(self) -> None:
 
-        authDialog: IAuthenticationDialog = await self._createAppropriateAuthenticationDialog()
+        clientId: str = GITHUB_CLIENT_ID
 
-        okPressed: bool = await authDialog.showDialog()
-        
-        if okPressed:
-            # Save the new token into preferences
-            self._preferences.gitHubAPIToken = authDialog.apiToken
-            # Re-initialize the adapter with the new token
-            self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
-            # Try again!
-            await self.loadRepositoriesSelectionList()
+        self.logger.info('Dialog opened. Please complete authentication.')
 
-    async def _createAppropriateAuthenticationDialog(self) -> IAuthenticationDialog:
-        """
+        authDialog: GithubAuthDialog = GithubAuthDialog(
+            title='GitHub Device Authorization',
+            clientId=clientId,
+            onSuccess=self._onAuthComplete
+        )
 
-        Returns:  The platform specific dialog
-        """
+        authDialog.show()
 
-        dialogTitle:   str = 'GitHub Authentication'
-        dialogMessage: str = 'Authentication Failed. Please enter your GitHub API Token:'
-        initialToken:  str = self._preferences.gitHubAPIToken
-
-        if sysPlatform == AppCommon.PLATFORM_IOS:
-            authDialog: IAuthenticationDialog = IOSAuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        elif sysPlatform == AppCommon.PLATFORM_MAC:
-            authDialog = AuthenticationDialog(
-                title=dialogTitle,
-                message=dialogMessage,
-                initialToken=initialToken
-            )
-        else:
-            assert False, 'Unsupported platform'
-
-        return authDialog
+        # Start the authorization process inside the dialog
+        await authDialog.startAuthentication()
 
     async def _handleGitHubConnectionError(self):
         #
@@ -134,3 +111,35 @@ class RepositorySelector(Box):
             dialog=ErrorDialog(title='Error', message='GitHub connection error. Try again later')
         )
 
+    def _onAuthComplete(self, accessToken: str) -> None:
+        """
+        This callback receives the token we need to access the user repos
+
+        Args:
+            accessToken:
+        """
+        self._preferences.gitHubAPIToken = accessToken
+        # Re-initialize the adapter with the new token
+        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        # Try again!
+        create_task(self.loadRepositoriesSelectionList())
+
+        self.logger.info('Token received! Fetching profile...')
+        loginName: str = self._getUserLoginName(accessToken)
+        self.logger.info(f'Welcome, {loginName}! authorization was successful.')
+
+    def _getUserLoginName(self, accessToken: str) -> str:
+
+        authHeaders: dict[str, str] = {
+
+            'Authorization': f'Bearer {accessToken}',
+            'Accept': 'application/vnd.github.v3+json'
+        }
+        userResponse: Response = get('https://api.github.com/user', headers=authHeaders)
+        profileData: dict = userResponse.json()
+
+        loginName: str = profileData.get('login', 'Unknown')
+
+        # self._infoLabel.text = f'Welcome, {loginName}! authorization was successful.'
+
+        return loginName

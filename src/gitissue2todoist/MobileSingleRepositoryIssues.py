@@ -16,16 +16,16 @@ from gitissue2todoist.IRepositoryIssues import ISSUE_TITLE_KEY
 from gitissue2todoist.IRepositoryIssues import IssueData
 from gitissue2todoist.IRepositoryIssues import IssueDataRow
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.components.MobileMultiSelect import SelectedValues
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine

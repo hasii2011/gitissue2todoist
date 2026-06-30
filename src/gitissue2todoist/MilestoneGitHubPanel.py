@@ -26,9 +26,9 @@ from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepository
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType

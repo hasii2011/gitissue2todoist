@@ -1,6 +1,6 @@
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList

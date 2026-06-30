@@ -12,16 +12,16 @@ from httpx import HTTPStatusError
 
 from gitissue2todoist.preferences.Preferences import Preferences
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IssueOwner
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IssuesCallback
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IAsyncGitHubAdapter
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IssuesCallback
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IAsyncHttpxGitHubAdapter
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 
@@ -45,7 +45,7 @@ GenericJson     = Dict[str, Any]
 GenericJsonList = List[GenericJson]
 
 
-class AsyncHttpxGitHubAdapter(IAsyncGitHubAdapter):
+class AsyncHttpxGitHubAdapter(IAsyncHttpxGitHubAdapter):
     """
     """
     def __init__(self, authenticationToken: str):

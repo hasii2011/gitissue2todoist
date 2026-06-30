@@ -23,8 +23,8 @@ from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.adapters.ErrorHandler import ErrorHandler
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import Slug
 
 from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
 from gitissue2todoist.general.exceptions.TaskCreationError import TaskCreationError

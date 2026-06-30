@@ -11,16 +11,16 @@ from httpx import RequestError
 from httpx import HTTPStatusError
 
 from gitissue2todoist.preferences.Preferences import Preferences
-from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitle
-from gitissue2todoist.adapters.IGitHubAdapter import Slugs
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
-from gitissue2todoist.adapters.IGitHubAdapter import IGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.IGitHubAdapter import IssuesCallback
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import Slugs
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IHttpxGitHubAdapter
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IssuesCallback
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import AbbreviatedGitIssues
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
@@ -41,7 +41,7 @@ GenericJson     = Dict[str, Any]
 GenericJsonList = List[GenericJson]
 
 
-class HttpxGitHubAdapter(IGitHubAdapter):
+class HttpxGitHubAdapter(IHttpxGitHubAdapter):
     """
 
     """

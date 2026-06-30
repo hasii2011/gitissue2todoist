@@ -1,3 +1,4 @@
+
 from typing import List
 from typing import Callable
 from typing import NewType
@@ -19,6 +20,7 @@ def createLabelsFactory() -> List[str]:
 
 @dataclass
 class AbbreviatedGitIssue:
+
 
     slug:         str = ''
     issueTitle:   str = ''
@@ -46,14 +48,14 @@ The callback for .getIssuesAssignedToOwner;  Allows reporting intermediate statu
 """
 
 
-class IAsyncGitHubAdapter(ABC):
+class IHttpxGitHubAdapter(ABC):
 
     @abstractmethod
-    async def getRepositoryNames(self) -> Slugs:
+    def getRepositoryNames(self) -> Slugs:
         pass
 
     @abstractmethod
-    async def getMileStoneTitles(self, repoName: Slug) -> MilestoneTitles:
+    def getMileStoneTitles(self, repoName: Slug) -> MilestoneTitles:
         """
         Args:
             repoName: The repository name
@@ -61,7 +63,7 @@ class IAsyncGitHubAdapter(ABC):
         pass
 
     @abstractmethod
-    async def getAbbreviatedIssues(self, repoName: Slug, milestoneTitle: str) -> AbbreviatedGitIssues:
+    def getAbbreviatedIssues(self, repoName: Slug, milestoneTitle: str) -> AbbreviatedGitIssues:
         """
         Given a repo name and a milestone title return a simplified list of Git issues
 
@@ -75,7 +77,7 @@ class IAsyncGitHubAdapter(ABC):
         pass
 
     @abstractmethod
-    async def getIssuesAssignedToOwner(self, slugs: Slugs, issueOwner: IssueOwner, callback: IssuesCallback) -> AbbreviatedGitIssues:
+    def getIssuesAssignedToOwner(self, slugs: Slugs, issueOwner: IssueOwner, callback: IssuesCallback) -> AbbreviatedGitIssues:
         """
         Creates an abbreviated list open issues assigned to the issue owner
 

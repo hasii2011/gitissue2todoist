@@ -21,11 +21,11 @@ from gitissue2todoist.IRepositoryIssues import REPOSITORY_NAME_NOT_SET
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import MilestoneTitle
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine

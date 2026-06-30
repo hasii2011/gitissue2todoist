@@ -23,11 +23,11 @@ from toga.style.pack import ROW
 from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssue
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import IssueOwner
-from gitissue2todoist.adapters.IAsyncGitHubAdapter import Slugs
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError

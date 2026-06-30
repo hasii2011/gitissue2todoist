@@ -1,5 +1,5 @@
-from typing import cast
 
+from typing import cast
 
 from requests import Response
 from requests import get
@@ -14,6 +14,8 @@ from toga.style.pack import COLUMN
 from toga.style.pack import CENTER
 
 from gitissue2todoist.githubauth.GithubAuthDialog import GithubAuthDialog
+
+GITHUB_USER_URL: str = 'https://api.github.com/user'
 
 GITHUB_CLIENT_ID: str = 'Ov23liHxUC2bdLShZn4h'
 
@@ -89,7 +91,7 @@ class DemoGithubAuthDialog(App):
             'Authorization': f'Bearer {accessToken}',
             'Accept': 'application/vnd.github.v3+json'
         }
-        userResponse: Response = get('https://api.github.com/user', headers=authHeaders)
+        userResponse: Response = get(GITHUB_USER_URL, headers=authHeaders)
         profileData: dict = userResponse.json()
 
         loginName: str = profileData.get('login', 'Unknown')

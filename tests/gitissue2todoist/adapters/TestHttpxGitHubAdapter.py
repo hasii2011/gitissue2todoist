@@ -8,12 +8,12 @@ from os import environ as osEnvironment
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.adapters.HttpxGitHubAdapter import HttpxGitHubAdapter
-from gitissue2todoist.adapters.IGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IGitHubAdapter import IntermediateStatus
-from gitissue2todoist.adapters.IGitHubAdapter import IssueOwner
-from gitissue2todoist.adapters.IGitHubAdapter import MilestoneTitles
-from gitissue2todoist.adapters.IGitHubAdapter import Slug
-from gitissue2todoist.adapters.IGitHubAdapter import Slugs
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import AbbreviatedGitIssues
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IntermediateStatus
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import IssueOwner
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import MilestoneTitles
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IHttpxGitHubAdapter import Slugs
 
 TEST_REPO_NAME:       Slug = Slug('hasii2011/testrepository')
 TEST_MILESTONE_TITLE: str  = 'Milestone 2'
