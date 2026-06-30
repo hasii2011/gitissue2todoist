@@ -20,8 +20,12 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
-from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.UICommon import UICommon
+
+from gitissue2todoist.AppCommon import AppCommon
+
+from gitissue2todoist.TodoistCommon import TodoistCommon
+
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
@@ -30,8 +34,9 @@ from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IssueOwner
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
-from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
+
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
@@ -40,6 +45,8 @@ from asyncio import AbstractEventLoop
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
+
+from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
 
 @dataclass
@@ -202,7 +209,14 @@ class MultiRepositoryIssues(Box):
         """
         
         # We instantiate this every time so it grabs the freshest API token
-        githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        rawToken: str | None = SecureTokenManager.getGitHubToken()
+
+        if rawToken is None:
+            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
+        else:
+            apiToken = rawToken
+            
+        githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
         
         try:
             retrievedIssues: AbbreviatedGitIssues = await githubAdapter.getIssuesAssignedToOwner(
@@ -223,13 +237,13 @@ class MultiRepositoryIssues(Box):
             authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
                 dialogTitle='GitHub Authentication Failed',
                 dialogMessage='Enter GitHub Credentials;  Only need the user name for strategy all',
-                apiToken=self._preferences.gitHubAPIToken,
+                apiToken=apiToken,
                 gitHubUserName=self._preferences.gitHubUserName
             )
             okPressed: bool = await authDialog.showDialog()
 
             if okPressed:
-                self._preferences.gitHubAPIToken = authDialog.apiToken
+                SecureTokenManager.saveGitHubToken(authDialog.apiToken)
                 return RetrievalResult(shouldRetry=True, retrievedIssues=None)
             else:
                 return RetrievalResult(shouldRetry=False, retrievedIssues=None)

@@ -11,21 +11,24 @@ from abc import abstractmethod
 from toga import Window
 from toga import ErrorDialog
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.TodoistCommon import TodoistCommon
+
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import IAsyncHttpxGitHubAdapter
-from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
-from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import MilestoneTitle
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
-from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
+from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 SelectedIssues = NewType('SelectedIssues', List[str])
 
@@ -68,9 +71,15 @@ class IRepositoryIssues(ABC):
             milestoneTitle:
 
         Returns:  A list of data row dictionaries
-
         """
-        gitHubAdapter: IAsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        rawToken: str | None = SecureTokenManager.getGitHubToken()
+
+        if rawToken is None:
+            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
+        else:
+            apiToken = rawToken
+            
+        gitHubAdapter: IAsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
         gitIssues: AbbreviatedGitIssues = await gitHubAdapter.getAbbreviatedIssues(
             repoName=repositoryName,

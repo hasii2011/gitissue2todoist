@@ -1,19 +1,19 @@
 
-from typing import Iterator
 from typing import cast
 from typing import Callable
+from typing import Iterator
 
 from abc import ABCMeta
 
+from logging import INFO
 from logging import Logger
 from logging import getLogger
-from logging import INFO
 
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.api_async import TodoistAPIAsync
 
-from todoist_api_python.models import Project
 from todoist_api_python.models import Task
+from todoist_api_python.models import Project
 from todoist_api_python.models import Comment
 
 from gitissue2todoist.strategy.ITodoistCreationStrategy import ITodoistCreationStrategy
@@ -21,17 +21,21 @@ from gitissue2todoist.strategy.ITodoistCreationStrategy import ITodoistCreationS
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 
-from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
+from gitissue2todoist.AppCommon import AppCommon
+
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
-from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
-from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectDictionary
-from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectName
-from gitissue2todoist.strategy.TodoistStrategyTypes import TaskId
-from gitissue2todoist.strategy.TodoistStrategyTypes import TaskName
-from gitissue2todoist.strategy.TodoistStrategyTypes import TaskNameMap
 from gitissue2todoist.strategy.TodoistStrategyTypes import Tasks
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskId
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskName
+from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectName
+from gitissue2todoist.strategy.TodoistStrategyTypes import TaskNameMap
+from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectDictionary
+
+from gitissue2todoist.general.exceptions.NoteCreationError import NoteCreationError
 
 
 class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
@@ -50,7 +54,13 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
 
         self._preferences: Preferences = Preferences()
 
-        apiToken:           str             = self._preferences.todoistAPIToken
+        rawToken: str | None = SecureTokenManager.getTodoistToken()
+
+        if rawToken is None:
+            apiToken: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
+        else:
+            apiToken = rawToken
+            
         self._todoist:      TodoistAPI      = TodoistAPI(apiToken)
         self._todoistAsync: TodoistAPIAsync = TodoistAPIAsync(apiToken)
 

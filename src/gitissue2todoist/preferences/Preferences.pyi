@@ -9,11 +9,9 @@ class Preferences:
     startupPosition: Position
     startupSize: Dimensions
     progressDialogPosition: Position
-    gitHubAPIToken: str
     gitHubUserName: str
     maxReposToRetrieve: int
     gitHubURLOption: GitHubURLOption
-    todoistAPIToken: str
     cleanTodoistCache: bool
     todoistProjectName: str
     taskCreationStrategy: TodoistTaskCreationStrategy

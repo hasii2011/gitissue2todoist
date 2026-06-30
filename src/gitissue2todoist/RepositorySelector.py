@@ -26,6 +26,7 @@ from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 
 from gitissue2todoist.adapters.GitHubConnectionError import GitHubConnectionError
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
@@ -34,6 +35,7 @@ from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 
 from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
+
 
 NO_SELECTION_INDICATOR: str  = '--- Select Repository ---'
 NO_SELECTION_SLUG:      Slug = Slug(NO_SELECTION_INDICATOR)
@@ -53,7 +55,14 @@ class RepositorySelector(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        self._githubAdapter: AsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        rawToken: str | None = SecureTokenManager.getGitHubToken()
+        
+        if rawToken is None:
+            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
+        else:
+            apiToken = rawToken
+            
+        self._githubAdapter: AsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
         repositoryLabel:           Label     = UICommon.createStandardSectionTitle('Repositories')
         self._repositorySelection: Selection = Selection()
@@ -144,9 +153,9 @@ class RepositorySelector(Box):
         Args:
             accessToken:
         """
-        self._preferences.gitHubAPIToken = accessToken
+        SecureTokenManager.saveGitHubToken(accessToken)
         # Re-initialize the adapter with the new token
-        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=accessToken)
         # Try again!
         create_task(self.loadRepositoriesSelectionList())
 

@@ -26,6 +26,8 @@ from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.AppCommon import AppCommon
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
+
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 
@@ -83,8 +85,8 @@ class PreferencesTabbedPanel(OptionContainer):
 
         preferences: Preferences = self._preferences
 
-        preferences.gitHubAPIToken  = self._githubToken.value
-        preferences.todoistAPIToken = self._todoistToken.value
+        SecureTokenManager.saveGitHubToken(self._githubToken.value)
+        SecureTokenManager.saveTodoistToken(self._todoistToken.value)
 
         preferences.cleanTodoistCache    = self._cacheCleanupSwitch.value
         preferences.todoistProjectName   = self._todoistProjectName.value
@@ -191,8 +193,11 @@ class PreferencesTabbedPanel(OptionContainer):
 
         preferences: Preferences = self._preferences
 
-        self._githubToken.value  = preferences.gitHubAPIToken
-        self._todoistToken.value = preferences.todoistAPIToken
+        githubToken:  str | None = SecureTokenManager.getGitHubToken()
+        todoistToken: str | None = SecureTokenManager.getTodoistToken()
+
+        self._githubToken.value  = githubToken if githubToken else 'Put Your GitHub API Token Here'
+        self._todoistToken.value = todoistToken if todoistToken else 'Put Your Todoist API Token Here'
 
         self._cacheCleanupSwitch.value   = preferences.cleanTodoistCache
         self._todoistProjectName.value   = preferences.todoistProjectName

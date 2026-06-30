@@ -14,9 +14,11 @@ from toga.style import Pack
 
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 from gitissue2todoist.UICommon import UICommon
 from gitissue2todoist.ClonedIssuesDisplay import ClonedIssuesDisplay
 from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
@@ -147,10 +149,17 @@ class TodoistPanel(Box):
             except AdapterAuthenticationError:
                 self._progressDlg.destroy()
 
+                rawToken: str | None = SecureTokenManager.getTodoistToken()
+
+                if rawToken is None:
+                    apiToken: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
+                else:
+                    apiToken = rawToken
+
                 authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
                     dialogTitle='Todoist Authentication Failed',
                     dialogMessage='Authentication Failed. Please enter your Todoist API Token',
-                    apiToken=self._preferences.todoistAPIToken,
+                    apiToken=apiToken,
                     gitHubUserName=self._preferences.gitHubUserName
                 )
 
@@ -159,7 +168,7 @@ class TodoistPanel(Box):
                 
                 if okPressed:
                     # Save the new token into preferences and retry the loop
-                    self._preferences.todoistAPIToken = authDialog.apiToken
+                    SecureTokenManager.saveTodoistToken(authDialog.apiToken)
                     continue
                 else:
                     break  # User canceled, exit loop

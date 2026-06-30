@@ -29,6 +29,8 @@ from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAd
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
+from gitissue2todoist.AppCommon import AppCommon
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
@@ -77,11 +79,17 @@ class UserRepositoriesPanel(Box):
         #
         self._pubSubEngine.subscribe(MessageType.CLONE_ISSUES, self._cloneIssuesListener)
 
-
     async def loadRepositories(self):
         # We instantiate this every time so it grabs the freshest API token
         while True:
-            githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+            rawToken: str | None = SecureTokenManager.getGitHubToken()
+
+            if rawToken is None:
+                apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
+            else:
+                apiToken = rawToken
+            
+            githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
             try:
                 repoNames: Slugs = await githubAdapter.getRepositoryNames()
@@ -94,14 +102,14 @@ class UserRepositoriesPanel(Box):
                 authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
                     dialogTitle='Authentication Failed',
                     dialogMessage='Enter GitHub Credentials;  Only need the user name for strategy all',
-                    apiToken=self._preferences.gitHubAPIToken,
+                    apiToken=apiToken,
                     gitHubUserName=self._preferences.gitHubUserName
                 )
                 okPressed:  bool = await authDialog.showDialog()
 
                 if okPressed:
                     # Save the new token into preferences and retry the loop
-                    self._preferences.gitHubAPIToken = authDialog.apiToken
+                    SecureTokenManager.saveGitHubToken(authDialog.apiToken)
 
                     continue
                 else:

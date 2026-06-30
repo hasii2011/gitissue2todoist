@@ -11,6 +11,7 @@ Pypubsub>=4.0.7
 httpx>=0.28.1
 todoist_api_python>=4.0.0
 requests>=2.34.2
+keyring>=24.0.0
 
 # Testing
 html-testRunner==1.2.1

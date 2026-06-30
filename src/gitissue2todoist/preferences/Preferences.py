@@ -48,7 +48,6 @@ SECTION_MAIN: ValueDescriptions = ValueDescriptions(
 
 SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
     {
-        KeyName('gitHubAPIToken'):     ValueDescription(defaultValue='Put Your GitHub API Token Here'),
         KeyName('gitHubUserName'):     ValueDescription(defaultValue='Put Your GitHub User Name Here'),
         KeyName('maxReposToRetrieve'): ValueDescription(defaultValue=DEFAULT_MAX_REPOS, deserializer=SecureConversions.secureInteger),
         KeyName('gitHubURLOption'):    ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
@@ -57,7 +56,6 @@ SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
 
 TODOIST_SECTION: ValueDescriptions = ValueDescriptions(
     {
-        KeyName('todoistAPIToken'):      ValueDescription(defaultValue='Put Your Todoist API Token Here'),
         KeyName('cleanTodoistCache'):    ValueDescription(defaultValue='True', deserializer=SecureConversions.secureBoolean),
         KeyName('todoistProjectName'):   ValueDescription(defaultValue=DEFAULT_TODOIST_PROJECT_NAME),
         KeyName('taskCreationStrategy'): ValueDescription(defaultValue=DEFAULT_TASK_CREATION_STRATEGY, deserializer=TodoistTaskCreationStrategy, enumUseValue=True),

@@ -8,7 +8,8 @@ from logging import getLogger
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Project
 
-from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
+from gitissue2todoist.AppCommon import AppCommon
 
 ProjectName = str
 ProjectId   = str
@@ -39,7 +40,11 @@ class TodoistCleanup:
 
         self._projectsToDelete: List[str] = projectsToDelete
 
-        api_token:     str        = Preferences().todoistAPIToken
+        rawToken: str | None = SecureTokenManager.getTodoistToken()
+        if rawToken is None:
+            api_token: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
+        else:
+            api_token = rawToken
         self._todoist: TodoistAPI = TodoistAPI(api_token)
 
     def deleteProjects(self):

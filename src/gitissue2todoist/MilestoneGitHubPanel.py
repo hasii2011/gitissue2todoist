@@ -24,6 +24,7 @@ from gitissue2todoist.SingleRepositoryIssues import SingleRepositoryIssues
 from gitissue2todoist.MobileSingleRepositoryIssues import MobileSingleRepositoryIssues
 
 from gitissue2todoist.preferences.Preferences import Preferences
+from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
@@ -96,7 +97,15 @@ class MilestoneGitHubPanel(Box):
         """
         self._repositoryName = repositoryName
         self.logger.info(f'Time to load milestones for {repositoryName}')
-        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=self._preferences.gitHubAPIToken)
+        
+        rawToken: str | None = SecureTokenManager.getGitHubToken()
+        
+        if rawToken is None:
+            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
+        else:
+            apiToken = rawToken
+            
+        self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
         from asyncio import create_task
         create_task(self._fetchMilestoneTitlesAsync(repositoryName=repositoryName))
