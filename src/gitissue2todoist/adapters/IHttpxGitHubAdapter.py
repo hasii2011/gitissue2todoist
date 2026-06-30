@@ -20,8 +20,6 @@ def createLabelsFactory() -> List[str]:
 
 @dataclass
 class AbbreviatedGitIssue:
-
-
     slug:         str = ''
     issueTitle:   str = ''
     issueHTMLURL: str = ''

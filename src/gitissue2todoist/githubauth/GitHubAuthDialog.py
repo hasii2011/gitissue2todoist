@@ -11,7 +11,7 @@ from toga.style.pack import CENTER
 from gitissue2todoist.githubauth.OAuthDeviceFlow import OAuthDeviceFlow
 
 
-class GithubAuthDialog(Window):
+class GitHubAuthDialog(Window):
     
     def __init__(self, title: str, clientId: str, onSuccess: Callable[[str], None]) -> None:
 

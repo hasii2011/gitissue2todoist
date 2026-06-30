@@ -13,7 +13,7 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import CENTER
 
-from gitissue2todoist.githubauth.GithubAuthDialog import GithubAuthDialog
+from gitissue2todoist.githubauth.GitHubAuthDialog import GitHubAuthDialog
 
 GITHUB_USER_URL: str = 'https://api.github.com/user'
 
@@ -57,7 +57,7 @@ class DemoGithubAuthDialog(App):
         self._authButton.enabled = False
         self._infoLabel.text = 'Dialog opened. Please complete authentication.'
         
-        authDialog: GithubAuthDialog = GithubAuthDialog(
+        authDialog: GitHubAuthDialog = GitHubAuthDialog(
             title='GitHub Device Authorization',
             clientId=clientId,
             onSuccess=self.onAuthComplete

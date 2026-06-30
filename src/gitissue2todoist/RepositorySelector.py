@@ -15,7 +15,7 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.githubauth.GithubAuthDialog import GithubAuthDialog
+from gitissue2todoist.githubauth.GitHubAuthDialog import GitHubAuthDialog
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
@@ -90,7 +90,7 @@ class RepositorySelector(Box):
 
         self.logger.info('Dialog opened. Please complete authentication.')
 
-        authDialog: GithubAuthDialog = GithubAuthDialog(
+        authDialog: GitHubAuthDialog = GitHubAuthDialog(
             title='GitHub Device Authorization',
             clientId=clientId,
             onSuccess=self._onAuthComplete
