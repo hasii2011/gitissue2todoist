@@ -8,15 +8,17 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import CENTER
 
-from githubauth.OAuthDeviceFlow import OAuthDeviceFlow
+from gitissue2todoist.githubauth.OAuthDeviceFlow import OAuthDeviceFlow
 
 
 class GithubAuthDialog(Window):
     
     def __init__(self, title: str, clientId: str, onSuccess: Callable[[str], None]) -> None:
+
         super().__init__(title=title)
-        self.clientId:  str                   = clientId
-        self.onSuccess: Callable[[str], None] = onSuccess
+
+        self._clientId:  str                   = clientId
+        self._onSuccess: Callable[[str], None] = onSuccess
         
         self.infoLabel: Label = Label(
             'Requesting code from GitHub...',
@@ -34,7 +36,7 @@ class GithubAuthDialog(Window):
         self.content = mainBox
         
     async def startAuthentication(self) -> None:
-        oauthFlow: OAuthDeviceFlow = OAuthDeviceFlow(self.clientId)
+        oauthFlow: OAuthDeviceFlow = OAuthDeviceFlow(self._clientId)
         
         try:
             oauthFlow.executePhase1()
@@ -47,7 +49,7 @@ class GithubAuthDialog(Window):
             self.infoLabel.text = 'Authentication Successful!'
             self.codeLabel.text = 'Closing dialog...'
             
-            self.onSuccess(accessToken)
+            self._onSuccess(accessToken)
             self.close()
             
         except RuntimeError as e:

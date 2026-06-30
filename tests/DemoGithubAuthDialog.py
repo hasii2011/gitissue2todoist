@@ -13,7 +13,7 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import CENTER
 
-from githubauth.GithubAuthDialog import GithubAuthDialog
+from gitissue2todoist.githubauth.GithubAuthDialog import GithubAuthDialog
 
 GITHUB_CLIENT_ID: str = 'Ov23liHxUC2bdLShZn4h'
 
@@ -21,25 +21,25 @@ class DemoGithubAuthDialog(App):
     
     def __init__(self, formalName: str, appId: str):
         super().__init__(formal_name=formalName, app_id=appId)
-        self.infoLabel:  Label  = cast(Label, None)
-        self.authButton: Button = cast(Button, None)
+        self._infoLabel:  Label  = cast(Label, None)
+        self._authButton: Button = cast(Button, None)
     
     def startup(self) -> None:
         mainBox: Box = Box(style=Pack(direction=COLUMN, align_items=CENTER, margin=20))
         
-        self.infoLabel: Label = Label(
+        self._infoLabel = Label(
             'Click the button to authenticate via the Dialog',
             style=Pack(margin=10)
         )
         
-        self.authButton: Button = Button(
+        self._authButton = Button(
             'Authenticate with GitHub',
             on_press=self.openAuthDialog,
             style=Pack(margin=10)
         )
         
-        mainBox.add(self.infoLabel)
-        mainBox.add(self.authButton)
+        mainBox.add(self._infoLabel)
+        mainBox.add(self._authButton)
         
         mainWindow: MainWindow = MainWindow(title='GitHub Auth Dialog Demo')
         mainWindow.content = mainBox
@@ -52,8 +52,8 @@ class DemoGithubAuthDialog(App):
 
         clientId: str = GITHUB_CLIENT_ID
 
-        self.authButton.enabled = False
-        self.infoLabel.text = 'Dialog opened. Please complete authentication.'
+        self._authButton.enabled = False
+        self._infoLabel.text = 'Dialog opened. Please complete authentication.'
         
         authDialog: GithubAuthDialog = GithubAuthDialog(
             title='GitHub Device Authorization',
@@ -75,12 +75,12 @@ class DemoGithubAuthDialog(App):
         Returns:
 
         """
-        self.infoLabel.text = 'Token received! Fetching profile...'
+        self._infoLabel.text = 'Token received! Fetching profile...'
 
         loginName: str = self._getUserLoginName(accessToken)
 
-        self.infoLabel.text = f'Welcome, {loginName}! authorization was successful.'
-        self.authButton.enabled = True
+        self._infoLabel.text = f'Welcome, {loginName}! authorization was successful.'
+        self._authButton.enabled = True
 
     def _getUserLoginName(self, accessToken: str) -> str:
 

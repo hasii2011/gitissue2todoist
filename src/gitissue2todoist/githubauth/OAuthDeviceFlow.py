@@ -1,4 +1,7 @@
 
+from typing import TypedDict
+from typing import NotRequired
+
 from asyncio import sleep
 
 from requests import Response
@@ -6,7 +9,27 @@ from requests import post
 
 from webbrowser import open as webBrowserOpen
 
-from githubauth.GitHubAuthorizationData import GitHubAuthorizationData
+from gitissue2todoist.githubauth.GitHubAuthorizationData import GitHubAuthorizationData
+
+DF_SLOW_DOWN:             str = 'slow_down'
+DF_AUTHORIZATION_PENDING: str = 'authorization_pending'
+
+GITHUB_KEY_DEVICE_CODE:      str = 'device_code'
+GITHUB_KEY_USER_CODE:        str = 'user_code'
+GITHUB_KEY_VERIFICATION_URI: str = 'verification_uri'
+GITHUB_KEY_INTERVAL:         str = 'interval'
+
+GITHUB_API_HEADERS: dict[str, str] = {'Accept': 'application/json'}
+
+DEVICE_CODE_URL: str = 'https://github.com/login/device/code'
+TOKEN_URL:       str = 'https://github.com/login/oauth/access_token'
+
+
+class PhaseOneResponse(TypedDict):
+    device_code:      str
+    user_code:        str
+    verification_uri: str
+    interval:         NotRequired[int]
 
 
 class OAuthDeviceFlow:
@@ -18,17 +41,16 @@ class OAuthDeviceFlow:
     as a two-phase process:
     
     """
-    
     def __init__(self, clientId: str) -> None:
         """
 
         Args:
-            clientId (str): The unique GitHub Client ID for the OAuth Application.:
+            clientId (str): The unique GitHub Client ID for the OAuth Application.
         """
 
         if not clientId:
             raise RuntimeError('Error: clientId cannot be empty!')
-        self._clientId: str = clientId
+        self._clientId:         str = clientId
         self._verificationData: GitHubAuthorizationData | None = None
         
     @property
@@ -43,8 +65,8 @@ class OAuthDeviceFlow:
         verification payload, and launches the user's browser.
         """
 
-        responseDict: dict                    = self._requestDeviceAndUserCodes(self._clientId)
-        authData:     GitHubAuthorizationData = self._toGitHubAuthorizationData(responseDict)
+        phaseOneResponse: PhaseOneResponse    = self._requestDeviceAndUserCodes(self._clientId)
+        authData:     GitHubAuthorizationData = self._toGitHubAuthorizationData(phaseOneResponse)
 
         self._verificationData = authData
         webBrowserOpen(authData.verificationUrl)
@@ -64,9 +86,6 @@ class OAuthDeviceFlow:
         if not self._verificationData:
             raise RuntimeError('Phase 1 has not been executed.')
             
-        tokenUrl: str            = 'https://github.com/login/oauth/access_token'
-        headers:  dict[str, str] = {'Accept': 'application/json'}
-
         tokenPayload: dict[str, str] = {
             'client_id':   self._clientId,
             'device_code': self._verificationData.deviceCode,
@@ -74,41 +93,56 @@ class OAuthDeviceFlow:
         }
         
         while True:
-            tokenResponse: Response = post(tokenUrl, headers=headers, data=tokenPayload)
+            tokenResponse: Response = post(TOKEN_URL, headers=GITHUB_API_HEADERS, data=tokenPayload)
             tokenData:     dict     = tokenResponse.json()
             
             if 'access_token' in tokenData:
                 return tokenData['access_token']
                 
             errorType: str = tokenData.get('error', '')
-            if errorType == 'authorization_pending':
+            if errorType == DF_AUTHORIZATION_PENDING:
                 await sleep(self._verificationData.interval)
-            elif errorType == 'slow_down':
+            elif errorType == DF_SLOW_DOWN:
                 self._verificationData.interval += 5
                 await sleep(self._verificationData.interval)
             else:
-                raise RuntimeError(f'Auth Failed: {errorType}')
+                raise RuntimeError(f'Authorization Failed: {errorType}')
                 
-    def _requestDeviceAndUserCodes(self, clientId: str) -> dict:
+    def _requestDeviceAndUserCodes(self, clientId: str) -> PhaseOneResponse:
+        """
 
-        deviceCodeUrl: str            = 'https://github.com/login/device/code'
-        headers:       dict[str, str] = {'Accept': 'application/json'}
+        Args:
+            clientId:
+
+        Returns:  The response JSON as a dictionary
+        """
+
         payload:       dict[str, str] = {
             'client_id': clientId,
             'scope': 'repo'
         }
         
-        response: Response = post(deviceCodeUrl, headers=headers, data=payload)
+        response: Response = post(DEVICE_CODE_URL, headers=GITHUB_API_HEADERS, data=payload)
         return response.json()
         
-    def _toGitHubAuthorizationData(self, responseDict: dict) -> GitHubAuthorizationData:
+    def _toGitHubAuthorizationData(self, phaseOneResponse: PhaseOneResponse) -> GitHubAuthorizationData:
+        """
+        Decodes the dictionary to a nice dataclass
 
-        deviceCode:      str = responseDict.get('device_code', '')
-        userCode:        str = responseDict.get('user_code', '')
-        verificationUrl: str = responseDict.get('verification_uri', '')
-        interval:        int = responseDict.get('interval', 5)
-        
-        if not deviceCode:
+        Args:
+            phaseOneResponse:  The typed dictionary
+
+        Returns:  The nice dataclass
+        """
+        #
+        # mypy limitation: TypedDict.get() with variable keys evaluates to 'object' instead of the defined type
+        #
+        deviceCode:      str = phaseOneResponse.get(GITHUB_KEY_DEVICE_CODE, '')       # type: ignore
+        userCode:        str = phaseOneResponse.get(GITHUB_KEY_USER_CODE, '')         # type: ignore
+        verificationUrl: str = phaseOneResponse.get(GITHUB_KEY_VERIFICATION_URI, '')  # type: ignore
+        interval:        int = phaseOneResponse.get(GITHUB_KEY_INTERVAL, 5)           # type: ignore
+
+        if deviceCode == '' or deviceCode is None:
             raise RuntimeError('Failed to get device code.')
             
         return GitHubAuthorizationData(
