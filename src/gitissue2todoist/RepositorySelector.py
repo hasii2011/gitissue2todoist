@@ -2,6 +2,8 @@
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
+
 from asyncio import create_task
 
 from requests import get
@@ -15,7 +17,10 @@ from toga import Selection
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.githubauth.GitHubAuthDialog import GitHubAuthDialog
+from gitissue2todoist.githubauth.IGitHubAuthDialog import IGitHubAuthDialog
+from gitissue2todoist.githubauth.IOSGithubAuthDialog import IOSGithubAuthDialog
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
@@ -88,13 +93,26 @@ class RepositorySelector(Box):
 
         clientId: str = GITHUB_CLIENT_ID
 
+        # self._authButton.enabled = False
+        # self._infoLabel.text = 'Dialog opened. Please complete authentication.'
         self.logger.info('Dialog opened. Please complete authentication.')
+        
+        dialogTitle: str = 'GitHub Device Authorization'
 
-        authDialog: GitHubAuthDialog = GitHubAuthDialog(
-            title='GitHub Device Authorization',
-            clientId=clientId,
-            onSuccess=self._onAuthComplete
-        )
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            authDialog: IGitHubAuthDialog = IOSGithubAuthDialog(
+                title=dialogTitle,
+                clientId=clientId,
+                onSuccess=self._onAuthComplete
+            )
+        elif sysPlatform == AppCommon.PLATFORM_MAC:
+            authDialog = GitHubAuthDialog(
+                title=dialogTitle,
+                clientId=clientId,
+                onSuccess=self._onAuthComplete
+            )
+        else:
+            assert False, 'Unsupported platform'
 
         authDialog.show()
 

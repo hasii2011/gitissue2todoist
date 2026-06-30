@@ -9,9 +9,10 @@ from toga.style.pack import COLUMN
 from toga.style.pack import CENTER
 
 from gitissue2todoist.githubauth.OAuthDeviceFlow import OAuthDeviceFlow
+from gitissue2todoist.githubauth.IGitHubAuthDialog import IGitHubAuthDialog
 
 
-class GitHubAuthDialog(Window):
+class GitHubAuthDialog(Window, IGitHubAuthDialog):
     
     def __init__(self, title: str, clientId: str, onSuccess: Callable[[str], None]) -> None:
 
