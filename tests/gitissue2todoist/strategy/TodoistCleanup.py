@@ -40,11 +40,10 @@ class TodoistCleanup:
 
         self._projectsToDelete: List[str] = projectsToDelete
 
-        rawToken: str | None = SecureTokenManager.getTodoistToken()
-        if rawToken is None:
-            api_token: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
-        else:
-            api_token = rawToken
+        api_token: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_TODOIST_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().todoistToken
+        )
         self._todoist: TodoistAPI = TodoistAPI(api_token)
 
     def deleteProjects(self):

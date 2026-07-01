@@ -85,8 +85,9 @@ class PreferencesTabbedPanel(OptionContainer):
 
         preferences: Preferences = self._preferences
 
-        SecureTokenManager.saveGitHubToken(self._githubToken.value)
-        SecureTokenManager.saveTodoistToken(self._todoistToken.value)
+        tokenManager: SecureTokenManager = SecureTokenManager()
+        tokenManager.gitHubToken  = self._githubToken.value
+        tokenManager.todoistToken = self._todoistToken.value
 
         preferences.cleanTodoistCache    = self._cacheCleanupSwitch.value
         preferences.todoistProjectName   = self._todoistProjectName.value
@@ -193,8 +194,9 @@ class PreferencesTabbedPanel(OptionContainer):
 
         preferences: Preferences = self._preferences
 
-        githubToken:  str | None = SecureTokenManager.getGitHubToken()
-        todoistToken: str | None = SecureTokenManager.getTodoistToken()
+        tokenManager: SecureTokenManager = SecureTokenManager()
+        githubToken:  str | None = tokenManager.gitHubToken
+        todoistToken: str | None = tokenManager.todoistToken
 
         self._githubToken.value  = githubToken if githubToken else 'Put Your GitHub API Token Here'
         self._todoistToken.value = todoistToken if todoistToken else 'Put Your Todoist API Token Here'

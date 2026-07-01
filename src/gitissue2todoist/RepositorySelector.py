@@ -55,12 +55,10 @@ class RepositorySelector(Box):
 
         self._pubSubEngine:  IPubSubEngine = pubSubEngine
         self._preferences:   Preferences   = Preferences()
-        rawToken: str | None = SecureTokenManager.getGitHubToken()
-        
-        if rawToken is None:
-            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
-        else:
-            apiToken = rawToken
+        apiToken: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_GITHUB_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().gitHubToken
+        )
             
         self._githubAdapter: AsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
@@ -153,7 +151,7 @@ class RepositorySelector(Box):
         Args:
             accessToken:
         """
-        SecureTokenManager.saveGitHubToken(accessToken)
+        SecureTokenManager().gitHubToken = accessToken
         # Re-initialize the adapter with the new token
         self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=accessToken)
         # Try again!

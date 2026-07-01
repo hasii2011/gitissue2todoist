@@ -149,12 +149,10 @@ class TodoistPanel(Box):
             except AdapterAuthenticationError:
                 self._progressDlg.destroy()
 
-                rawToken: str | None = SecureTokenManager.getTodoistToken()
-
-                if rawToken is None:
-                    apiToken: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
-                else:
-                    apiToken = rawToken
+                apiToken: str = AppCommon.getAuthenticationToken(
+                    fallbackMessage=AppCommon.NO_TODOIST_TOKEN_MESSAGE,
+                    tokenRetrievalMethod=lambda: SecureTokenManager().todoistToken
+                )
 
                 authDialog: IAuthenticationDialog = await UICommon.setupAuthenticationDialog(
                     dialogTitle='Todoist Authentication Failed',
@@ -168,7 +166,7 @@ class TodoistPanel(Box):
                 
                 if okPressed:
                     # Save the new token into preferences and retry the loop
-                    SecureTokenManager.saveTodoistToken(authDialog.apiToken)
+                    SecureTokenManager().todoistToken = authDialog.apiToken
                     continue
                 else:
                     break  # User canceled, exit loop

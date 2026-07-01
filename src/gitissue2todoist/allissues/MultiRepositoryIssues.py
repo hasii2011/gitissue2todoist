@@ -209,12 +209,10 @@ class MultiRepositoryIssues(Box):
         """
         
         # We instantiate this every time so it grabs the freshest API token
-        rawToken: str | None = SecureTokenManager.getGitHubToken()
-
-        if rawToken is None:
-            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
-        else:
-            apiToken = rawToken
+        apiToken: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_GITHUB_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().gitHubToken
+        )
             
         githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
         
@@ -243,7 +241,7 @@ class MultiRepositoryIssues(Box):
             okPressed: bool = await authDialog.showDialog()
 
             if okPressed:
-                SecureTokenManager.saveGitHubToken(authDialog.apiToken)
+                SecureTokenManager().gitHubToken = authDialog.apiToken
                 return RetrievalResult(shouldRetry=True, retrievedIssues=None)
             else:
                 return RetrievalResult(shouldRetry=False, retrievedIssues=None)

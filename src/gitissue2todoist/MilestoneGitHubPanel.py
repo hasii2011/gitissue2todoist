@@ -98,12 +98,10 @@ class MilestoneGitHubPanel(Box):
         self._repositoryName = repositoryName
         self.logger.info(f'Time to load milestones for {repositoryName}')
         
-        rawToken: str | None = SecureTokenManager.getGitHubToken()
-        
-        if rawToken is None:
-            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
-        else:
-            apiToken = rawToken
+        apiToken: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_GITHUB_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().gitHubToken
+        )
             
         self._githubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 

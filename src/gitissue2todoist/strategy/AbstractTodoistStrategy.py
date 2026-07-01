@@ -54,12 +54,10 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
 
         self._preferences: Preferences = Preferences()
 
-        rawToken: str | None = SecureTokenManager.getTodoistToken()
-
-        if rawToken is None:
-            apiToken: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
-        else:
-            apiToken = rawToken
+        apiToken: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_TODOIST_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().todoistToken
+        )
             
         self._todoist:      TodoistAPI      = TodoistAPI(apiToken)
         self._todoistAsync: TodoistAPIAsync = TodoistAPIAsync(apiToken)

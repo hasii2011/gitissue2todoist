@@ -72,12 +72,10 @@ class IRepositoryIssues(ABC):
 
         Returns:  A list of data row dictionaries
         """
-        rawToken: str | None = SecureTokenManager.getGitHubToken()
-
-        if rawToken is None:
-            apiToken: str = AppCommon.NO_GITHUB_TOKEN_MESSAGE
-        else:
-            apiToken = rawToken
+        apiToken: str = AppCommon.getAuthenticationToken(
+            fallbackMessage=AppCommon.NO_GITHUB_TOKEN_MESSAGE,
+            tokenRetrievalMethod=lambda: SecureTokenManager().gitHubToken
+        )
             
         gitHubAdapter: IAsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 

@@ -25,11 +25,10 @@ DeleteDictionary = NewType('DeleteDictionary', Dict[ProjectName, ProjectId])
 
 def getProjectsToDelete() -> DeleteDictionary:
 
-    rawToken: str | None = SecureTokenManager.getTodoistToken()
-    if rawToken is None:
-        api_token: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
-    else:
-        api_token = rawToken
+    api_token: str = AppCommon.getAuthenticationToken(
+        fallbackMessage=AppCommon.NO_TODOIST_TOKEN_MESSAGE,
+        tokenRetrievalMethod=lambda: SecureTokenManager().todoistToken
+    )
     todoist:   TodoistAPI = TodoistAPI(api_token)
 
     deleteDictionary: DeleteDictionary = DeleteDictionary({})
@@ -45,11 +44,10 @@ def getProjectsToDelete() -> DeleteDictionary:
     return deleteDictionary
 
 def deleteProjects(projectsToDelete: DeleteDictionary):
-    rawToken: str | None = SecureTokenManager.getTodoistToken()
-    if rawToken is None:
-        api_token: str = AppCommon.NO_TODOIST_TOKEN_MESSAGE
-    else:
-        api_token = rawToken
+    api_token: str = AppCommon.getAuthenticationToken(
+        fallbackMessage=AppCommon.NO_TODOIST_TOKEN_MESSAGE,
+        tokenRetrievalMethod=lambda: SecureTokenManager().todoistToken
+    )
     todoist:   TodoistAPI = TodoistAPI(api_token)
 
     for projectName, projectId in projectsToDelete.items():
