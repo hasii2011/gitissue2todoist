@@ -66,6 +66,7 @@ DEBUG_SECTION: ValueDescriptions = ValueDescriptions(
         KeyName('debugMobileIssueSelector'):       ValueDescription(defaultValue='False', deserializer=SecureConversions.secureBoolean),
         KeyName('debugMobilePreferencesDialog'):   ValueDescription(defaultValue='False', deserializer=SecureConversions.secureBoolean),
         KeyName('debugMobileAuthorizationDialog'): ValueDescription(defaultValue='False', deserializer=SecureConversions.secureBoolean),
+        KeyName('debugMobileMultiRepositoryIssues'): ValueDescription(defaultValue='False', deserializer=SecureConversions.secureBoolean),
     }
 )
 

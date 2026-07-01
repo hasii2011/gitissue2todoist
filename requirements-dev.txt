@@ -2,6 +2,8 @@
 # Briefcase manages its own dependencies for building the app, but IDEs need 
 # dependencies installed in the local virtual environment to provide autocomplete and avoid "missing module" errors.
 
+#
+briefcase==0.4.2
 # Base GUI framework (this will automatically install toga-cocoa on Mac, toga-gtk on Linux, etc.)
 toga~=0.5.0
 
