@@ -63,4 +63,3 @@ logs/
 
 # Briefcase local configuratoin
 .briefcase/
-_version.py

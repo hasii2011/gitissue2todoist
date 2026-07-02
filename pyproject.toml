@@ -1,21 +1,18 @@
-
 [project]
 name = "gitissue2todoist"
 dynamic = ["version"]
 # This project was generated with 0.4.2 using template: https://github.com/beeware/briefcase-template @ v0.4.2
 
 [build-system]
-requires = ["setuptools>=61", "setuptools_scm[toml]>=8"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-# setuptools_scm will automatically generate this file with the git tag version!
-version_file = "src/gitissue2todoist/_version.py"
+[tool.setuptools.dynamic]
+version = {attr = "gitissue2todoist.__version__"}
 
 [tool.briefcase]
 project_name = "gitissue2todoist"
 bundle = "org.gitissue2todoist"
-# version = '0.0.1'
 url = "https://github.com/hasii2011/gitissue2todoist"
 license = 'AGPL-1.0-or-later'
 license-files = ['LICENSE']
