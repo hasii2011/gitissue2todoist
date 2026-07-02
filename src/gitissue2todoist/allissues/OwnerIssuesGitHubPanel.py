@@ -1,22 +1,18 @@
 
-from typing import cast
-
 from logging import Logger
 from logging import getLogger
 
 from sys import platform as sysPlatform
 
 from toga import Box
-from toga import Widget
 from toga.style import Pack
 from toga.style.pack import COLUMN
 
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
-from gitissue2todoist.allissues.IMultiRepositoryIssues import IMultiRepositoryIssues
 
-from gitissue2todoist.allissues.MobileMultiRepositoryIssues import MobileMultiRepositoryIssues
-from gitissue2todoist.allissues.MultiRepositoryIssues import MultiRepositoryIssues
+from gitissue2todoist.allissues.MobileMultiRepositoryIssuesPanel import MobileMultiRepositoryIssuesPanel
+from gitissue2todoist.allissues.MultiRepositoryIssuesPanel import MultiRepositoryIssuesPanel
 
 from gitissue2todoist.allissues.UserRepositoriesPanel import UserRepositoriesPanel
 from gitissue2todoist.preferences.Preferences import Preferences
@@ -45,18 +41,22 @@ class OwnerIssuesGitHubPanel(Box):
         #
         # Selection of the GitHub Issues
         #
+        # Define the UI container as a Toga Box so it satisfies both Desktop and Mobile types
+        repositoryIssues: Box
+        
         if self._preferences.debugMobileMultiRepositoryIssues:
-            repositoryIssues: IMultiRepositoryIssues = MobileMultiRepositoryIssues(pubSubEngine=self._pubSubEngine)  # temp so I can test it
+            repositoryIssues = MobileMultiRepositoryIssuesPanel(pubSubEngine=self._pubSubEngine)  # temp so I can test it
         else:
             if sysPlatform == AppCommon.PLATFORM_MAC:
-                repositoryIssues = MultiRepositoryIssues(pubSubEngine=self._pubSubEngine)
+                repositoryIssues = MultiRepositoryIssuesPanel(pubSubEngine=self._pubSubEngine)
             elif sysPlatform == AppCommon.PLATFORM_IOS:
-                repositoryIssues = MobileMultiRepositoryIssues(pubSubEngine=self._pubSubEngine)
+                repositoryIssues = MobileMultiRepositoryIssuesPanel(pubSubEngine=self._pubSubEngine)
             else:
                 assert False, 'Unsupported platform'
 
         self.add(self._allUserRepositories)
-        self.add(cast(Widget, repositoryIssues))
+        # Add the widget directly, no cast needed since Box is a Widget
+        self.add(repositoryIssues)
 
     async def loadRepositories(self):
         await self._allUserRepositories.loadRepositories()

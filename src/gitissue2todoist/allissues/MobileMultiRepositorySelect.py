@@ -19,7 +19,7 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 
-from gitissue2todoist.allissues.IMultiRepositoryIssues import IMultiRepositoryIssues
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IMultiRepositoryIssuesPanel
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
@@ -38,7 +38,7 @@ SelectedIssues = NewType('SelectedIssues', List[AbbreviatedGitIssue])
 ItemSelectCallback   = Callable[[], None]
 ItemDeselectCallback = Callable[[bool], None]
 
-class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositoryIssues):
+class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositoryIssuesPanel):
     """
     iOS compatible component for selecting issues across multiple repositories.
     Replaces the toga.Table used on the desktop application.
@@ -53,7 +53,7 @@ class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositoryIssues):
         """
 
         super().__init__(style=Pack(flex=1))
-        IMultiRepositoryIssues.__init__(self, pubSubEngine=pubSubEngine)
+        IMultiRepositoryIssuesPanel.__init__(self, pubSubEngine=pubSubEngine)
 
         self.logger: Logger = getLogger(__name__)
 
@@ -97,8 +97,8 @@ class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositoryIssues):
 
         # 1. Clear existing rows from the UI container
         for item in self._switchWidgets:
-            rowBox: Box = item['rowBox']
-            self._listContainer.remove(rowBox)
+            clearRowBox: Box = item['rowBox']
+            self._listContainer.remove(clearRowBox)
             
         # 2. Clear our tracking list
         self._switchWidgets.clear()

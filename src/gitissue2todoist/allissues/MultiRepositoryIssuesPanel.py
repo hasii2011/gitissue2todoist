@@ -21,12 +21,12 @@ from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
-from gitissue2todoist.allissues.IMultiRepositoryIssues import ISSUE_DATA_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssues import ISSUE_SLUG_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssues import ISSUE_TITLE_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssues import IssueData
-from gitissue2todoist.allissues.IMultiRepositoryIssues import IssueDataRow
-from gitissue2todoist.allissues.IMultiRepositoryIssues import IMultiRepositoryIssues
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_DATA_KEY
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_SLUG_KEY
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_TITLE_KEY
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IssueData
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IssueDataRow
+from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IMultiRepositoryIssuesPanel
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
@@ -35,13 +35,13 @@ from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 
 
-class MultiRepositoryIssues(Box, IMultiRepositoryIssues):
+class MultiRepositoryIssuesPanel(Box, IMultiRepositoryIssuesPanel):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 
         style: Pack = Pack(direction=COLUMN, flex=1, margin_left=UICommon.MARGIN_LEFT, margin_right=UICommon.MARGIN_RIGHT, gap=15)
         super().__init__(style=style)
-        IMultiRepositoryIssues.__init__(self, pubSubEngine=pubSubEngine)
+        IMultiRepositoryIssuesPanel.__init__(self, pubSubEngine=pubSubEngine)
 
         self.logger:        Logger        = getLogger(__name__)
 

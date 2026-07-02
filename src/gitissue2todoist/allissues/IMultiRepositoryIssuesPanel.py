@@ -51,7 +51,7 @@ ISSUE_SLUG_KEY:  IssueKey = IssueKey('issueSlug')
 ISSUE_TITLE_KEY: IssueKey = IssueKey('issueTitle')
 
 
-class IMultiRepositoryIssues(ABC):
+class IMultiRepositoryIssuesPanel(ABC):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 

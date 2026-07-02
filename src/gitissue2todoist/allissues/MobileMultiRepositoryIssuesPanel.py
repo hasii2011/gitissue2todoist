@@ -12,7 +12,7 @@ from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 
-class MobileMultiRepositoryIssues(Box):
+class MobileMultiRepositoryIssuesPanel(Box):
     def __init__(self, pubSubEngine: IPubSubEngine):
 
         style: Pack = Pack(direction=COLUMN, flex=1, margin_left=UICommon.MARGIN_LEFT, margin_right=UICommon.MARGIN_RIGHT, gap=15)
