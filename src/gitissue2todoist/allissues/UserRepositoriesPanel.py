@@ -187,13 +187,7 @@ class UserRepositoriesPanel(Box):
     # noinspection PyUnusedLocal
     def _onRetrieve(self, widget):
         """
-        Calls the GitHub adapter with the issue owner name and a list of
-        selected repositories to get the issues assigned to this owner.  Because this is
-        a potentially expensive operation we run it async and update a progress dialog
-        for the application user
 
-        TODO: The code to retrieve the issues belongs MultiRepositoryIsses and it mobile
-        companion.  We should just publish the selected repositories
         Args:
             widget:
 

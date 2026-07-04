@@ -45,8 +45,8 @@ class OwnerIssuesGitHubPanel(Box):
         # Selection of the GitHub Issues
         #
         repositoryIssues: IMultiRepositorySelect = MultiRepositoryIssuesPanel(pubSubEngine=pubSubEngine)
-        self.add(self._allUserRepositories)
 
+        self.add(self._allUserRepositories)
         self.add(cast(Widget, repositoryIssues))    # I know what I am doing
 
     async def loadRepositories(self):
