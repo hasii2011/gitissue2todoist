@@ -63,3 +63,5 @@ logs/
 
 # Briefcase local configuratoin
 .briefcase/
+
+pyenv-3.13.13/

@@ -5,6 +5,8 @@ from typing import List
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
+
 from toga import Box
 from toga import Button
 from toga import Table
@@ -14,19 +16,19 @@ from toga.style import Pack
 from toga.style.pack import COLUMN
 from toga.style.pack import ROW
 
+from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.TodoistCommon import TodoistCommon
 
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
-from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_DATA_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_SLUG_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import ISSUE_TITLE_KEY
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IssueData
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IssueDataRow
-from gitissue2todoist.allissues.IMultiRepositoryIssuesPanel import IMultiRepositoryIssuesPanel
+
+from gitissue2todoist.owner.MultiRepositorySelect import ISSUE_DATA_KEY
+from gitissue2todoist.owner.MultiRepositorySelect import MultiRepositorySelect
+from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
+from gitissue2todoist.owner.MobileMultiRepositorySelect import MobileMultiRepositorySelect
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.pubsubengine.MessageType import MessageType
@@ -35,32 +37,46 @@ from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 
 
-class MultiRepositoryIssuesPanel(Box, IMultiRepositoryIssuesPanel):
+class MultiRepositoryIssuesPanel(Box):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 
         style: Pack = Pack(direction=COLUMN, flex=1, margin_left=UICommon.MARGIN_LEFT, margin_right=UICommon.MARGIN_RIGHT, gap=15)
         super().__init__(style=style)
-        IMultiRepositoryIssuesPanel.__init__(self, pubSubEngine=pubSubEngine)
 
         self.logger:        Logger        = getLogger(__name__)
 
-        self._issueTable: Table = Table(
-            columns=['issueSlug', 'issueTitle'],
-            accessors=[ISSUE_SLUG_KEY, ISSUE_TITLE_KEY],
-            multiple_select=True,
-            show_headings=True,
-            style=Pack(flex=1),
-            data=[],
-            on_select = self._onIssueSelected
-        )
+        multiRepositorySelect: IMultiRepositorySelect
+        if self._preferences.debugMobileMultiRepositoryIssues:
+            multiRepositorySelect = MobileMultiRepositorySelect(
+                pubSubEngine=pubSubEngine,
+                itemSelectCallback=self._onItemSelected,
+                itemDeselectCallback=self._onItemDeselect
+            )
+        else:
+            if sysPlatform == AppCommon.PLATFORM_MAC:
+                multiRepositorySelect = MultiRepositorySelect(
+                    pubSubEngine=pubSubEngine,
+                    itemSelectCallback=self._onItemSelected,
+                    itemDeselectCallback=self._onItemDeselect
+                )
+            elif sysPlatform == AppCommon.PLATFORM_IOS:
+                multiRepositorySelect = MobileMultiRepositorySelect(
+                    pubSubEngine=pubSubEngine,
+                    itemSelectCallback=self._onItemSelected,
+                    itemDeselectCallback=self._onItemDeselect
+                )
+            else:
+                assert False, 'Unsupported Platform'
 
         self._cloneButton:     Button               = cast(Button, None)                # noqa
         self._selectAllButton: Button               = cast(Button, None)                # noqa
         self._retrievedIssues: AbbreviatedGitIssues = cast(AbbreviatedGitIssues, None)  # noqa
 
-        self.add(self._issueTable)
+        self.add(cast(Widget, multiRepositorySelect))       # Trust me these are Widgets
         self.add(self._createButtons())
+
+        self._multiRepositorySelect: IMultiRepositorySelect = multiRepositorySelect
 
         self._pubSubEngine.subscribe(MessageType.RETRIEVE_OWNER_ISSUES, listener=self._retrieveOwnerIssuesListener)
 
@@ -97,30 +113,14 @@ class MultiRepositoryIssuesPanel(Box, IMultiRepositoryIssuesPanel):
         """
         from asyncio import create_task
 
-        async def _runAndProcess():
+        async def retrieveIssuesAndSetSelector():
             retrievedIssues: AbbreviatedGitIssues | None = await self._doRetrieval(repositories)
             
             if retrievedIssues is not None:
-                self.logger.info(f'Successfully captured {len(retrievedIssues)} issues!')
-                # TODO: Update UI with retrievedIssues
-                issueData: IssueData = IssueData([])
-                for issue in retrievedIssues:
-                    gitIssue: AbbreviatedGitIssue = issue
-                    issueSlug:    str          = gitIssue.slug
-                    issueTitle:   str          = gitIssue.issueTitle
-                    issueDataRow: IssueDataRow = IssueDataRow({})
-
-                    issueDataRow[ISSUE_SLUG_KEY]  = issueSlug
-                    issueDataRow[ISSUE_TITLE_KEY] = issueTitle
-
-                    issueDataRow[ISSUE_DATA_KEY] = gitIssue
-
-                    issueData.append(issueDataRow)
-
                 self._retrievedIssues = retrievedIssues
-                self._issueTable.data = issueData
+                self._multiRepositorySelect.setValues(retrievedIssues)
 
-        create_task(_runAndProcess())
+        create_task(retrieveIssuesAndSetSelector())
         self._selectAllButton.enabled = True
 
     async def _handleGeneralError(self, error: Exception) -> None:
@@ -167,18 +167,12 @@ class MultiRepositoryIssuesPanel(Box, IMultiRepositoryIssuesPanel):
     # noinspection PyUnusedLocal
     def _onSelectAll(self, widget: Widget) -> None:
         """
-        Access the underlying native macOS NSTableView and call selectAll_
-
-        Safely grab the native NSTableView and trigger the OS-level 'Select All' action
-
-        This OSX specific
-
         Args:
             widget:
 
         """
         # noinspection PyProtectedMember
-        self._issueTable._impl.native.documentView.selectAll_(None)
+        self._multiRepositorySelect.selectAll()
         self._cloneButton.enabled = True
 
     def _createCloneInformation(self) -> CloneInformation:
@@ -194,3 +188,11 @@ class MultiRepositoryIssuesPanel(Box, IMultiRepositoryIssuesPanel):
         cloneInformation.tasksToClone = tasksToClone
 
         return cloneInformation
+
+    def _onItemSelected(self):
+        self.logger.info(f'Item Selected')
+        self._cloneButton.enabled = True
+
+    def _onItemDeselect(self, lastItemDeselected: bool):
+        if lastItemDeselected:
+            self._cloneButton.enabled =False
