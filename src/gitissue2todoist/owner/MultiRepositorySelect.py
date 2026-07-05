@@ -55,7 +55,7 @@ class MultiRepositorySelect(Table, IMultiRepositorySelect):
         selectedIssues: SelectedIssues = SelectedIssues([])
 
         # Cast explicitly to tell type checkers that multiple_select=True returns a List[Row]
-        selectedRows: List[Row] = cast(List[Row], self._issueTable.selection)
+        selectedRows: List[Row] = cast(List[Row], self.selection)
         if selectedRows:
             for row in selectedRows:
                 togaRow: Row = row

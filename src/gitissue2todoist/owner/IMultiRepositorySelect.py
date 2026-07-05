@@ -1,6 +1,4 @@
 
-from typing import List
-from typing import NewType
 from typing import Callable
 
 from abc import ABC
@@ -10,10 +8,9 @@ from gitissue2todoist.preferences.Preferences import Preferences
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
-from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
-SelectedIssues = NewType('SelectedIssues', List[AbbreviatedGitIssue])
+SelectedIssues = AbbreviatedGitIssues
 
 ItemSelectCallback   = Callable[[], None]
 ItemDeselectCallback = Callable[[bool], None]

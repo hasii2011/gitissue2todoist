@@ -108,7 +108,6 @@ class GitIssue2Todoist(App):
 
             self._todoistPanel = TodoistPanel(pubSubEngine=self._pubSubEngine)
 
-
             # Only render this button on mobile platforms where menus don't exist
             if sysPlatform == AppCommon.PLATFORM_IOS:
                 settingsButton = Button(

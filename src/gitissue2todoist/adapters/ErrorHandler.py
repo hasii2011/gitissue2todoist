@@ -70,10 +70,10 @@ class ErrorHandler:
 
         assert errorCode in self._errorsHandled, 'Developer made  boo boo'
 
-        if self._preferences.cleanTodoistCache is False:
-            await self._informUserOfOptions(errorMessage)
-        else:
+        if self._preferences.cleanTodoistCache:
             await self._doRemedialAction()
+        else:
+            await self._informUserOfOptions(errorMessage)
 
     async def _doRemedialAction(self):
 
@@ -127,14 +127,6 @@ class ErrorHandler:
         directoryToDelete: str = osPath.join(homeDir, ErrorHandler.TODOIST_CACHE_DIRECTORY_NAME)
 
         rmtree(directoryToDelete)
-
-        # msgDlg: MessageDialog = MessageDialog(parent=None,
-        #                                       message='Now quit and restart PyGitIssue2Todoist',
-        #                                       caption='Restart',
-        #                                       style=OK | ICON_INFORMATION)
-        #
-        # msgDlg.ShowModal()
-        # msgDlg.Destroy()
 
         dlg: InfoDialog = InfoDialog(
             title='Restart',

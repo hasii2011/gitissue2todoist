@@ -207,7 +207,7 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
             repoId: str = itemNames[TaskName(repoName)]
         else:
             todoist:  TodoistAPI = self._todoist
-            repoTask: Task = todoist.add_task(project_id=projectId, content=repoName, description='Repo task created by PyGitIssue2Todoist')
+            repoTask: Task = todoist.add_task(project_id=projectId, content=repoName, description='Repo task created by GitIssue2Todoist')
 
             repoId = repoTask.id
 

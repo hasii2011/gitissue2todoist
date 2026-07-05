@@ -1,5 +1,5 @@
+
 from typing import cast
-from typing import List
 
 from logging import Logger
 from logging import getLogger
@@ -21,10 +21,8 @@ from gitissue2todoist.UICommon import UICommon
 
 from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
-from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
-from gitissue2todoist.owner.MultiRepositorySelect import ISSUE_DATA_KEY
 from gitissue2todoist.owner.MultiRepositorySelect import MultiRepositorySelect
 from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
 from gitissue2todoist.owner.MobileMultiRepositorySelect import MobileMultiRepositorySelect
@@ -85,21 +83,9 @@ class MultiRepositoryIssuesPanel(Box):
     @property
     def selectedIssues(self) -> AbbreviatedGitIssues:
 
-        from toga.sources import Row
+        selectedIssues: AbbreviatedGitIssues = self._multiRepositorySelect.selectedIssues
 
-        selectedIssues: AbbreviatedGitIssues = AbbreviatedGitIssues([])
-
-        # Cast explicitly to tell type checkers that multiple_select=True returns a List[Row]
-        selectedRows: List[Row] = cast(List[Row], self._issueTable.selection)
-        if selectedRows:
-            for row in selectedRows:
-                togaRow: Row = row
-                # Use getattr to bypass static type checker warnings for dynamic Row attributes
-                abbreviatedGitIssue: AbbreviatedGitIssue = getattr(togaRow, ISSUE_DATA_KEY)
-
-                self.logger.debug(f'Currently selected: {abbreviatedGitIssue}')
-                selectedIssues.append(abbreviatedGitIssue)
-        else:
+        if len(selectedIssues) == 0:
             self.logger.warning('Nothing selected.')
 
         return selectedIssues

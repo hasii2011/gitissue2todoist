@@ -86,7 +86,7 @@ class TodoistOwnerIssues(AbstractTodoistStrategy):
                 progressCb(f'Found existing repository task: {justRepoName}')
                 repoTask: Task = todoist.get_task(task_id=repoId)
             else:
-                repoTask = todoist.add_task(project_id=projectId, content=justRepoName, description='Repository task created by PyGitIssue2Todoist')
+                repoTask = todoist.add_task(project_id=projectId, content=justRepoName, description='Repository task created by GitIssue2Todoist')
                 progressCb(f'Created new repository task: {justRepoName}')
                 #
                 # Since we created a new repository task put it in the name map
