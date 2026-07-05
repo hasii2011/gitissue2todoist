@@ -14,7 +14,7 @@ from toga.style.pack import COLUMN
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.allissues.UserRepositoriesPanel import UserRepositoriesPanel
+from gitissue2todoist.owner.UserRepositoriesPanel import UserRepositoriesPanel
 from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
 from gitissue2todoist.owner.MultiRepositoryIssuesPanel import MultiRepositoryIssuesPanel
 

@@ -30,7 +30,7 @@ from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.MilestoneGitHubPanel import MilestoneGitHubPanel
 from gitissue2todoist.RepositorySelector import RepositorySelector
 from gitissue2todoist.TodoistPanel import TodoistPanel
-from gitissue2todoist.allissues.OwnerIssuesGitHubPanel import OwnerIssuesGitHubPanel
+from gitissue2todoist.owner.OwnerIssuesGitHubPanel import OwnerIssuesGitHubPanel
 from gitissue2todoist.preferences.IOSPreferencesDialog import IOSPreferencesDialog
 from gitissue2todoist.preferences.IPreferencesDialog import IPreferencesDialog
 
