@@ -19,3 +19,4 @@ class Preferences:
     debugMobilePreferencesDialog: bool
     debugMobileAuthorizationDialog: bool
     debugMobileMultiRepositoryIssues: bool
+    debugMobileRepositoryList: bool

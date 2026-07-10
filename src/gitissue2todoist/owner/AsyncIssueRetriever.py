@@ -101,10 +101,12 @@ class AsyncIssueRetriever:
 
         githubAdapter: AsyncHttpxGitHubAdapter = AsyncHttpxGitHubAdapter(authenticationToken=apiToken)
 
+        issueOwner: IssueOwner = IssueOwner(self._preferences.gitHubUserName)
+        self.logger.info(f'Retrieving issues: {issueOwner=}')
         try:
             retrievedIssues: AbbreviatedGitIssues = await githubAdapter.getIssuesAssignedToOwner(
                 slugs=repositories,
-                issueOwner=IssueOwner(self._preferences.gitHubUserName),
+                issueOwner=IssueOwner(issueOwner),
                 callback=threadSafeCallback
             )
 

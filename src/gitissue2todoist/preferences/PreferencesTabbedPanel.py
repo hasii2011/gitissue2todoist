@@ -68,6 +68,7 @@ class PreferencesTabbedPanel(OptionContainer):
         self._todoistToken:         TextInput
         self._githubToken:          TextInput
         self._githubUrlOption:      Selection
+        self._githubUserName:       TextInput
         self._todoistProjectName:   TextInput
         self._cacheCleanupSwitch:   Switch
 
@@ -94,6 +95,7 @@ class PreferencesTabbedPanel(OptionContainer):
         preferences.taskCreationStrategy = TodoistTaskCreationStrategy(cast(str, self._taskCreationStrategy.value))
 
         preferences.gitHubURLOption = GitHubURLOption(cast(str, self._githubUrlOption.value))
+        preferences.gitHubUserName  = self._githubUserName.value
 
     def _buildTokensTab(self, container: Box) -> None:
         """
@@ -107,8 +109,10 @@ class PreferencesTabbedPanel(OptionContainer):
             container:
 
         """
-        todoistTokenRow, self._todoistToken = self._buildTokenRow('Todoist Token')
-        githubTokenRow, self._githubToken   = self._buildTokenRow('GitHub Token')
+        todoistTokenRow: Box
+        githubTokenRow: Box
+        todoistTokenRow, self._todoistToken = self._buildTextInputRow('Todoist Token')
+        githubTokenRow, self._githubToken   = self._buildTextInputRow('GitHub Token')
 
         container.add(githubTokenRow, todoistTokenRow)
 
@@ -159,6 +163,7 @@ class PreferencesTabbedPanel(OptionContainer):
         
         Modifies instance variables:
             - self._githubUrlOption
+            - self._githubUserName
 
         Args:
             container:
@@ -173,12 +178,24 @@ class PreferencesTabbedPanel(OptionContainer):
 
         wrapperBox: Box = Box(style=Pack(direction=COLUMN))
         wrapperBox.add(urlLabel, self._githubUrlOption)
-        
+
+        githubUserNameRow: Box
+        githubUserNameRow, self._githubUserName   = self._buildTextInputRow('GitHub User Name')
+
         container.add(wrapperBox)
+        container.add(githubUserNameRow)
 
         self._githubUrlOption.on_change = self._onGitHubUrlOptionChanged
 
-    def _buildTokenRow(self, textLabel: str) -> Tuple[Box, TextInput]:
+    def _buildTextInputRow(self, textLabel: str) -> Tuple[Box, TextInput]:
+        """
+
+        Args:
+            textLabel:  The label for the text input
+
+        Returns:  A tuple of the box containing the label and text input AND the text input
+
+        """
 
         tokenRow:   Box        = Box(style=Pack(direction=ROW, margin_bottom=TOKEN_ROW_MARGIN_BOTTOM))
         tokenLabel: Label      = Label(textLabel, style=Pack(width=TOKEN_LABEL_WIDTH, text_align=LEFT))
@@ -206,6 +223,7 @@ class PreferencesTabbedPanel(OptionContainer):
         self._taskCreationStrategy.value = preferences.taskCreationStrategy.value
 
         self._githubUrlOption.value = preferences.gitHubURLOption.value
+        self._githubUserName.value  = preferences.gitHubUserName
 
     def _onTaskCreationStrategyChanged(self, selection: Selection):
         UICommon.popDownPicker(selection=selection)

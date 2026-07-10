@@ -143,8 +143,9 @@ class MultiRepositoryIssuesPanel(Box):
         ci: CloneInformation = self._createCloneInformation()
 
         self._pubSubEngine.sendMessage(MessageType.CLONE_ISSUES, cloneInformation=ci)
-        #
-        self._issueTable.data         = []
+
+        self._multiRepositorySelect.setValues(AbbreviatedGitIssues([]))
+
         self._cloneButton.enabled     = False
         self._selectAllButton.enabled = False
 

@@ -134,7 +134,7 @@ class TodoistPanel(Box):
         while True:
             # We instantiate this every time so it grabs the freshest API token
             self._todoistCreation = TodoistCreation()
-            self._progressDlg     = UICommon.setupProgressDialog(title='Creating Todoist Tasks...')
+            self._progressDlg     = UICommon.setupProgressDialog(title='Creating Todoist Tasks...', maxProgressValue=len(ci.tasksToClone))
 
             def _threadSafeCallback(msg: str):
                 self.logger.info(f'{msg}')

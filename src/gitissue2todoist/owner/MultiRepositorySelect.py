@@ -104,7 +104,6 @@ class MultiRepositorySelect(Table, IMultiRepositorySelect):
         # noinspection PyProtectedMember
         self._impl.native.documentView.selectAll_(None)
 
-
     # noinspection PyUnusedLocal
     def _onIssueSelected(self, repositoryList: Table) -> None:
         self._itemSelectCallback()

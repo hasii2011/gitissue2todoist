@@ -8,12 +8,12 @@ from typing import cast
 from logging import Logger
 from logging import getLogger
 
+from sys import platform as sysPlatform
 
 from toga import Box
 from toga import Button
 from toga import ErrorDialog
 from toga import Label
-from toga import Table
 
 from toga.style import Pack
 from toga.style.pack import ROW
@@ -27,6 +27,9 @@ from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
+from gitissue2todoist.owner.IRepositoryList import IRepositoryList
+from gitissue2todoist.owner.MobileRepositoryList import MobileRepositoryList
+from gitissue2todoist.owner.RepositoryList import RepositoryList
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
@@ -61,13 +64,33 @@ class UserRepositoriesPanel(Box):
 
         allUserRepositoriesLabel: Label = UICommon.createStandardSectionTitle('All User Repositories')
 
-        self._repositoryList: Table = Table(
-            columns=[REPOSITORY_TITLE_KEY],
-            multiple_select=True,
-            show_headings=False,
-            style=Pack(flex=1),
-            on_select=self._onRepositorySelected
-        )
+        self._repositoryList: IRepositoryList
+        if self._preferences.debugMobileRepositoryList:
+
+            self._repositoryList = MobileRepositoryList(
+                pubSubEngine=self._pubSubEngine,
+                repositorySelectedCb=self._repositorySelectedCb,
+                repositoryDeselectedCb=self._repositoryDeselectedCb
+            )
+
+        else:
+            if sysPlatform == AppCommon.PLATFORM_MAC:
+
+                self._repositoryList = RepositoryList(
+                    pubSubEngine=self._pubSubEngine,
+                    repositorySelectedCb=self._repositorySelectedCb,
+                    repositoryDeselectedCb=self._repositoryDeselectedCb
+                )
+            elif sysPlatform == AppCommon.PLATFORM_IOS:
+
+                self._repositoryList = MobileRepositoryList(
+                    pubSubEngine=self._pubSubEngine,
+                    repositorySelectedCb=self._repositorySelectedCb,
+                    repositoryDeselectedCb=self._repositoryDeselectedCb
+                )
+            else:
+                assert False, 'Unsupported platform'
+
         self._retrieveIssuesButton: Button = cast(Button, None)
 
         self.add(allUserRepositoriesLabel)
@@ -93,7 +116,7 @@ class UserRepositoriesPanel(Box):
                 repoNames: Slugs = await githubAdapter.getRepositoryNames()
                 repoNames.sort()
 
-                self._repositoryList.data = repoNames
+                self._repositoryList.setValues(repoNames)
                 break
             except AdapterAuthenticationError as e:
                 self.logger.error(f'{e=}')
@@ -161,28 +184,21 @@ class UserRepositoriesPanel(Box):
         return selectedRepositories
 
     # noinspection PyUnusedLocal
-    def _onRepositorySelected(self, repositoryList: Table):
+    def _repositorySelectedCb(self) -> None:
         self._retrieveIssuesButton.enabled = True
+
+    # noinspection PyUnusedLocal
+    def _repositoryDeselectedCb(self, lastOne: bool) -> None:
+        if lastOne:
+            self._retrieveIssuesButton.enabled = False
+        else:
+            self._retrieveIssuesButton.enabled = True
 
     # noinspection PyUnusedLocal
     def _onSelectAll(self, widget):
         """
-        Access the underlying native macOS NSTableView and call selectAll_
-
-        Safely grab the native NSTableView and trigger the OS-level 'Select All' action
-
-        This OSX specific
-
-        Args:
-            widget:
-
         """
-        self._repositoryList._impl.native.documentView.selectAll_(None)
-        selections = self._repositoryList.selection
-
-        selectedRepositories: SelectedRepositories = self.selectedRepositories
-
-        self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
+        self._repositoryList.selectAll()
 
     # noinspection PyUnusedLocal
     def _onRetrieve(self, widget):
@@ -227,4 +243,5 @@ class UserRepositoriesPanel(Box):
             cloneInformation
         """
         # noinspection PyProtectedMember
-        self._repositoryList._impl.native.documentView.deselectAll_(None)
+        self._repositoryList.deSelectAll()
+        # self._repositoryList._impl.native.documentView.deselectAll_(None)
