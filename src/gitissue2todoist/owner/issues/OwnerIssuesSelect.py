@@ -30,7 +30,7 @@ ISSUE_SLUG_KEY:  IssueKey = IssueKey('issueSlug')
 ISSUE_TITLE_KEY: IssueKey = IssueKey('issueTitle')
 
 
-class MultiRepositorySelect(Table, IOwnerIssuesSelect):
+class OwnerIssuesSelect(Table, IOwnerIssuesSelect):
 
     def __init__(self, pubSubEngine: IPubSubEngine, itemSelectCallback: ItemSelectCallback, itemDeselectCallback: ItemDeselectCallback):
 

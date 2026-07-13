@@ -16,7 +16,7 @@ ItemSelectCallback   = Callable[[], None]
 ItemDeselectCallback = Callable[[bool], None]
 
 
-class IMultiRepositorySelect(ABC):
+class IOwnerIssuesSelect(ABC):
 
     def __init__(self, pubSubEngine: IPubSubEngine, itemSelectCallback: ItemSelectCallback, itemDeselectCallback: ItemDeselectCallback):
 

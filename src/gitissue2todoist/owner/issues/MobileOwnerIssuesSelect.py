@@ -33,7 +33,7 @@ REPO_LABEL_FIXED_WIDTH:  int = 100  # Fixed width so switches align nicely
 REPO_LABEL_RIGHT_MARGIN: int = 10
 
 
-class MobileMultiRepositorySelect(ScrollContainer, IOwnerIssuesSelect):
+class MobileOwnerIssuesSelect(ScrollContainer, IOwnerIssuesSelect):
     """
     iOS compatible component for selecting issues across multiple repositories.
     Replaces the toga.Table used on the desktop application.
