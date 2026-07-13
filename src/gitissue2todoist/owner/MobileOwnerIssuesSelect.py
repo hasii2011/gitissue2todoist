@@ -17,10 +17,10 @@ from toga.style import Pack
 from toga.style.pack import ROW
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
-from gitissue2todoist.owner.IMultiRepositorySelect import ItemDeselectCallback
-from gitissue2todoist.owner.IMultiRepositorySelect import ItemSelectCallback
-from gitissue2todoist.owner.IMultiRepositorySelect import SelectedIssues
+from gitissue2todoist.owner.IOwnerIssuesSelect import IOwnerIssuesSelect
+from gitissue2todoist.owner.IOwnerIssuesSelect import ItemDeselectCallback
+from gitissue2todoist.owner.IOwnerIssuesSelect import ItemSelectCallback
+from gitissue2todoist.owner.IOwnerIssuesSelect import SelectedIssues
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
@@ -33,7 +33,7 @@ REPO_LABEL_FIXED_WIDTH:  int = 100  # Fixed width so switches align nicely
 REPO_LABEL_RIGHT_MARGIN: int = 10
 
 
-class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositorySelect):
+class MobileMultiRepositorySelect(ScrollContainer, IOwnerIssuesSelect):
     """
     iOS compatible component for selecting issues across multiple repositories.
     Replaces the toga.Table used on the desktop application.
@@ -50,7 +50,7 @@ class MobileMultiRepositorySelect(ScrollContainer, IMultiRepositorySelect):
         self._pubSubEngine: IPubSubEngine = pubSubEngine
 
         super().__init__(style=Pack(flex=1))
-        IMultiRepositorySelect.__init__(self, pubSubEngine=pubSubEngine, itemSelectCallback=itemSelectCallback, itemDeselectCallback=itemDeselectCallback)
+        IOwnerIssuesSelect.__init__(self, pubSubEngine=pubSubEngine, itemSelectCallback=itemSelectCallback, itemDeselectCallback=itemDeselectCallback)
 
 
         self._listContainer: Box = Box(style=Pack(direction=COLUMN, margin=10))

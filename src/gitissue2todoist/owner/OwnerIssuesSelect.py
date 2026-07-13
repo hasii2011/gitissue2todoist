@@ -14,10 +14,10 @@ from toga.style import Pack
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
-from gitissue2todoist.owner.IMultiRepositorySelect import SelectedIssues
-from gitissue2todoist.owner.IMultiRepositorySelect import ItemSelectCallback
-from gitissue2todoist.owner.IMultiRepositorySelect import ItemDeselectCallback
-from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
+from gitissue2todoist.owner.IOwnerIssuesSelect import SelectedIssues
+from gitissue2todoist.owner.IOwnerIssuesSelect import ItemSelectCallback
+from gitissue2todoist.owner.IOwnerIssuesSelect import ItemDeselectCallback
+from gitissue2todoist.owner.IOwnerIssuesSelect import IOwnerIssuesSelect
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
@@ -30,7 +30,7 @@ ISSUE_SLUG_KEY:  IssueKey = IssueKey('issueSlug')
 ISSUE_TITLE_KEY: IssueKey = IssueKey('issueTitle')
 
 
-class MultiRepositorySelect(Table, IMultiRepositorySelect):
+class MultiRepositorySelect(Table, IOwnerIssuesSelect):
 
     def __init__(self, pubSubEngine: IPubSubEngine, itemSelectCallback: ItemSelectCallback, itemDeselectCallback: ItemDeselectCallback):
 
@@ -45,7 +45,7 @@ class MultiRepositorySelect(Table, IMultiRepositorySelect):
             data=[],
             on_select = self._onIssueSelected
         )
-        IMultiRepositorySelect.__init__(self, pubSubEngine=pubSubEngine, itemSelectCallback=itemSelectCallback, itemDeselectCallback=itemDeselectCallback)
+        IOwnerIssuesSelect.__init__(self, pubSubEngine=pubSubEngine, itemSelectCallback=itemSelectCallback, itemDeselectCallback=itemDeselectCallback)
 
     @property
     def selectedIssues(self) -> SelectedIssues:
