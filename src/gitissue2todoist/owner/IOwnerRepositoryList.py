@@ -12,7 +12,7 @@ from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 RepositorySelectedCb   = Callable[[], None]
 RepositoryDeselectedCb = Callable[[bool], None]
 
-class IRepositoryList(ABC):
+class IOwnerRepositoryList(ABC):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 

@@ -9,8 +9,8 @@ from toga.style.pack import COLUMN
 
 from gitissue2todoist.UICommon import UICommon
 
-from gitissue2todoist.owner.UserRepositoriesPanel import UserRepositoriesPanel
-from gitissue2todoist.owner.MultiRepositoryIssuesPanel import MultiRepositoryIssuesPanel
+from gitissue2todoist.owner.OwnerRepositoriesPanel import OwnerRepositoriesPanel
+from gitissue2todoist.owner.OwnerRepositoryIssuesPanel import OwnerRepositoryIssuesPanel
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
@@ -31,8 +31,8 @@ class OwnerIssuesGitHubPanel(Box):
         #  Selection of all a User's repositories &
         #  Selection of the GitHub Issues 'owned' by the user
         #
-        self._allUserRepositories: UserRepositoriesPanel      = UserRepositoriesPanel(pubSubEngine=pubSubEngine)
-        repositoryIssues:          MultiRepositoryIssuesPanel = MultiRepositoryIssuesPanel(pubSubEngine=pubSubEngine)
+        self._allUserRepositories: OwnerRepositoriesPanel      = OwnerRepositoriesPanel(pubSubEngine=pubSubEngine)
+        repositoryIssues:          OwnerRepositoryIssuesPanel = OwnerRepositoryIssuesPanel(pubSubEngine=pubSubEngine)
 
         self.add(self._allUserRepositories)
         self.add(repositoryIssues)

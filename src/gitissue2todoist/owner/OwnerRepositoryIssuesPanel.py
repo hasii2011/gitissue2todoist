@@ -35,7 +35,7 @@ from gitissue2todoist.pubsubengine.MessageType import MessageType
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 
-class MultiRepositoryIssuesPanel(Box):
+class OwnerRepositoryIssuesPanel(Box):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 

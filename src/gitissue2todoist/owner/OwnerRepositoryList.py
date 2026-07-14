@@ -14,9 +14,9 @@ from toga.sources import Row
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
-from gitissue2todoist.owner.IRepositoryList import IRepositoryList
-from gitissue2todoist.owner.IRepositoryList import RepositoryDeselectedCb
-from gitissue2todoist.owner.IRepositoryList import RepositorySelectedCb
+from gitissue2todoist.owner.IOwnerRepositoryList import IOwnerRepositoryList
+from gitissue2todoist.owner.IOwnerRepositoryList import RepositoryDeselectedCb
+from gitissue2todoist.owner.IOwnerRepositoryList import RepositorySelectedCb
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
@@ -31,7 +31,7 @@ REPO_SLUG_KEY:  IssueKey = IssueKey('repository')
 
 SelectedRepositories = Slugs
 
-class RepositoryList(Table, IRepositoryList):
+class OwnerRepositoryList(Table, IOwnerRepositoryList):
 
     def __init__(self, pubSubEngine: IPubSubEngine, repositorySelectedCb: RepositorySelectedCb, repositoryDeselectedCb: RepositoryDeselectedCb):
 
@@ -44,7 +44,7 @@ class RepositoryList(Table, IRepositoryList):
         )
         self.logger: Logger = getLogger(__name__)
 
-        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
+        IOwnerRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
 
         self._repositorySelectedCb:   RepositorySelectedCb   = repositorySelectedCb
         self._repositoryDeselectedCb: RepositoryDeselectedCb = repositoryDeselectedCb

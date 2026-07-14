@@ -9,14 +9,14 @@ from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
 from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
 from gitissue2todoist.components.MobileMultiSelect import SelectedValues
 
-from gitissue2todoist.owner.IRepositoryList import IRepositoryList
-from gitissue2todoist.owner.IRepositoryList import RepositoryDeselectedCb
-from gitissue2todoist.owner.IRepositoryList import RepositorySelectedCb
+from gitissue2todoist.owner.IOwnerRepositoryList import IOwnerRepositoryList
+from gitissue2todoist.owner.IOwnerRepositoryList import RepositoryDeselectedCb
+from gitissue2todoist.owner.IOwnerRepositoryList import RepositorySelectedCb
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 
-class MobileRepositoryList(MobileMultiSelect, IRepositoryList):
+class MobileOwnerRepositoryList(MobileMultiSelect, IOwnerRepositoryList):
 
     def __init__(self, pubSubEngine: IPubSubEngine, repositorySelectedCb: RepositorySelectedCb, repositoryDeselectedCb: RepositoryDeselectedCb):
         """
@@ -31,7 +31,7 @@ class MobileRepositoryList(MobileMultiSelect, IRepositoryList):
 
         super().__init__(itemSelectCallback=repositorySelectedCb, itemDeselectCallback=repositoryDeselectedCb)
 
-        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
+        IOwnerRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
 
     @property
     def selectedRepositories(self) -> Slugs:

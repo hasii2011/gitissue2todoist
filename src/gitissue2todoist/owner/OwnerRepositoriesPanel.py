@@ -34,10 +34,10 @@ from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAd
 
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 
-from gitissue2todoist.owner.IRepositoryList import IRepositoryList
-from gitissue2todoist.owner.MobileRepositoryList import MobileRepositoryList
-from gitissue2todoist.owner.RepositoryList import RepositoryList
-from gitissue2todoist.owner.RepositoryList import SelectedRepositories
+from gitissue2todoist.owner.IOwnerRepositoryList import IOwnerRepositoryList
+from gitissue2todoist.owner.MobileOwnerRepositoryList import MobileOwnerRepositoryList
+from gitissue2todoist.owner.OwnerRepositoryList import OwnerRepositoryList
+from gitissue2todoist.owner.OwnerRepositoryList import SelectedRepositories
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
@@ -55,7 +55,7 @@ RepositoryDataRow = NewType('RepositoryDataRow', Dict[str, Union[str, Slug]])
 RepositoryData    = NewType('RepositoryData', List[RepositoryDataRow])
 
 
-class UserRepositoriesPanel(Box):
+class OwnerRepositoriesPanel(Box):
 
     def __init__(self, pubSubEngine: IPubSubEngine):
 
@@ -70,10 +70,10 @@ class UserRepositoriesPanel(Box):
 
         allUserRepositoriesLabel: Label = UICommon.createStandardSectionTitle('All User Repositories')
 
-        self._repositoryList: IRepositoryList
+        self._repositoryList: IOwnerRepositoryList
         if self._preferences.debugMobileRepositoryList:
 
-            self._repositoryList = MobileRepositoryList(
+            self._repositoryList = MobileOwnerRepositoryList(
                 pubSubEngine=self._pubSubEngine,
                 repositorySelectedCb=self._repositorySelectedCb,
                 repositoryDeselectedCb=self._repositoryDeselectedCb
@@ -82,14 +82,14 @@ class UserRepositoriesPanel(Box):
         else:
             if sysPlatform == AppCommon.PLATFORM_MAC:
 
-                self._repositoryList = RepositoryList(
+                self._repositoryList = OwnerRepositoryList(
                     pubSubEngine=self._pubSubEngine,
                     repositorySelectedCb=self._repositorySelectedCb,
                     repositoryDeselectedCb=self._repositoryDeselectedCb
                 )
             elif sysPlatform == AppCommon.PLATFORM_IOS:
 
-                self._repositoryList = MobileRepositoryList(
+                self._repositoryList = MobileOwnerRepositoryList(
                     pubSubEngine=self._pubSubEngine,
                     repositorySelectedCb=self._repositorySelectedCb,
                     repositoryDeselectedCb=self._repositoryDeselectedCb
