@@ -23,9 +23,9 @@ from gitissue2todoist.TodoistCommon import TodoistCommon
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssues
 
-from gitissue2todoist.owner.MultiRepositorySelect import MultiRepositorySelect
-from gitissue2todoist.owner.IMultiRepositorySelect import IMultiRepositorySelect
-from gitissue2todoist.owner.MobileMultiRepositorySelect import MobileMultiRepositorySelect
+from gitissue2todoist.owner.issues.OwnerIssuesSelect import OwnerIssuesSelect
+from gitissue2todoist.owner.issues.IOwnerIssuesSelect import IOwnerIssuesSelect
+from gitissue2todoist.owner.issues.MobileOwnerIssuesSelect import MobileOwnerIssuesSelect
 
 from gitissue2todoist.preferences.Preferences import Preferences
 
@@ -46,22 +46,22 @@ class MultiRepositoryIssuesPanel(Box):
         self._preferences:  Preferences   = Preferences()
         self._pubSubEngine: IPubSubEngine = pubSubEngine
 
-        multiRepositorySelect: IMultiRepositorySelect
+        multiRepositorySelect: IOwnerIssuesSelect
         if self._preferences.debugMobileMultiRepositoryIssues:
-            multiRepositorySelect = MobileMultiRepositorySelect(
+            multiRepositorySelect = MobileOwnerIssuesSelect(
                 pubSubEngine=pubSubEngine,
                 itemSelectCallback=self._onItemSelected,
                 itemDeselectCallback=self._onItemDeselect
             )
         else:
             if sysPlatform == AppCommon.PLATFORM_MAC:
-                multiRepositorySelect = MultiRepositorySelect(
+                multiRepositorySelect = OwnerIssuesSelect(
                     pubSubEngine=pubSubEngine,
                     itemSelectCallback=self._onItemSelected,
                     itemDeselectCallback=self._onItemDeselect
                 )
             elif sysPlatform == AppCommon.PLATFORM_IOS:
-                multiRepositorySelect = MobileMultiRepositorySelect(
+                multiRepositorySelect = MobileOwnerIssuesSelect(
                     pubSubEngine=pubSubEngine,
                     itemSelectCallback=self._onItemSelected,
                     itemDeselectCallback=self._onItemDeselect
@@ -76,7 +76,7 @@ class MultiRepositoryIssuesPanel(Box):
         self.add(cast(Widget, multiRepositorySelect))       # Trust me these are Widgets
         self.add(self._createButtons())
 
-        self._multiRepositorySelect: IMultiRepositorySelect = multiRepositorySelect
+        self._multiRepositorySelect: IOwnerIssuesSelect = multiRepositorySelect
 
         self._pubSubEngine.subscribe(MessageType.RETRIEVE_OWNER_ISSUES, listener=self._retrieveOwnerIssuesListener)
 

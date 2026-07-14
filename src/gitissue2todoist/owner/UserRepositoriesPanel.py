@@ -10,43 +10,49 @@ from logging import getLogger
 
 from sys import platform as sysPlatform
 
+from asyncio import Task
+from asyncio import create_task
+
 from toga import Box
 from toga import Button
 from toga import ErrorDialog
+from toga import InfoDialog
 from toga import Label
+from toga import Window
 
 from toga.style import Pack
 from toga.style.pack import ROW
 from toga.style.pack import COLUMN
 
-from toga.sources import Row
-
 from gitissue2todoist.UICommon import UICommon
+
+from gitissue2todoist.AppCommon import AppCommon
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
 from gitissue2todoist.adapters.AsyncHttpxGitHubAdapter import AsyncHttpxGitHubAdapter
+
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
+
 from gitissue2todoist.owner.IRepositoryList import IRepositoryList
 from gitissue2todoist.owner.MobileRepositoryList import MobileRepositoryList
 from gitissue2todoist.owner.RepositoryList import RepositoryList
+from gitissue2todoist.owner.RepositoryList import SelectedRepositories
 
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
-from gitissue2todoist.AppCommon import AppCommon
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.pubsubengine.MessageType import MessageType
+
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
 
 REPOSITORY_TITLE_KEY: str = 'repository'
 
 RepositoryDataRow = NewType('RepositoryDataRow', Dict[str, Union[str, Slug]])
 RepositoryData    = NewType('RepositoryData', List[RepositoryDataRow])
-
-SelectedRepositories = Slugs
 
 
 class UserRepositoriesPanel(Box):
@@ -116,7 +122,7 @@ class UserRepositoriesPanel(Box):
                 repoNames: Slugs = await githubAdapter.getRepositoryNames()
                 repoNames.sort()
 
-                self._repositoryList.setValues(repoNames)
+                self._repositoryList.setRepositories(repoNames)
                 break
             except AdapterAuthenticationError as e:
                 self.logger.error(f'{e=}')
@@ -159,30 +165,6 @@ class UserRepositoriesPanel(Box):
 
         return buttonBox
 
-    @property
-    def selectedRepositories(self) -> SelectedRepositories:
-        """
-
-        Returns: A list of selected repositories were toggled ON.
-        """
-        selectedRepositories: SelectedRepositories = SelectedRepositories([])
-
-        # Cast explicitly informs type checkers that multiple_select=True returns a List[Row]
-        selectedRows: List[Row] = cast(List[Row], self._repositoryList.selection)
-
-        if selectedRows:
-            for row in selectedRows:
-                togaRow: Row = row
-                # Use getattr to bypass static type checker warnings for dynamic Row attributes
-                repoSlug: Slug = getattr(togaRow, REPOSITORY_TITLE_KEY)
-
-                self.logger.debug(f'Currently selected: {repoSlug}')
-                selectedRepositories.append(repoSlug)
-        else:
-            self.logger.warning('Nothing selected.')
-
-        return selectedRepositories
-
     # noinspection PyUnusedLocal
     def _repositorySelectedCb(self) -> None:
         self._retrieveIssuesButton.enabled = True
@@ -208,10 +190,19 @@ class UserRepositoriesPanel(Box):
             widget:
 
         """
+        selectedRepositories: SelectedRepositories = self._repositoryList.selectedRepositories
 
-        selectedRepositories: SelectedRepositories = self.selectedRepositories
+        if len(selectedRepositories) == 0:
 
-        self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
+            dlg: InfoDialog = InfoDialog(title='Warning', message='Selected repositories have no issues')
+            _w: Window | None = self.window
+            assert _w is not None, 'I know what I am doing'
+            # _w.dialog(dialog=dlg)
+            # Schedule the coroutine to run without blocking the current thread
+            dialogTask: Task = create_task(_w.dialog(dialog=dlg))
+
+        else:
+            self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
 
     async def _handleGeneralError(self, error: Exception):
         """
@@ -223,7 +214,9 @@ class UserRepositoriesPanel(Box):
             title='General Error!',
             message=message
         )
-        await self._showDialog(dialog=dlg)
+        _w: Window | None = self.window
+        assert _w is not None, 'I know what I am doing'
+        await _w.dialog(dialog=dlg)
 
     # noinspection PyUnusedLocal
     def _cloneIssuesListener(self, cloneInformation: CloneInformation) -> None:

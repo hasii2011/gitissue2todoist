@@ -112,3 +112,9 @@ class MobileMultiSelect(ScrollContainer):
         # Force the container to recalculate its layout with the new items
         self._switchContainer.refresh()
 
+    def selectAll(self):
+        for w in self._switchWidgets:
+            switch: Switch = w
+            switch.value = True
+
+        self._itemSelectCallback()

@@ -2,10 +2,13 @@
 from logging import Logger
 from logging import getLogger
 
-from toga import ScrollContainer
-from toga.style import Pack
-
+from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
+
+from gitissue2todoist.components.MobileMultiSelect import MobileMultiSelect
+from gitissue2todoist.components.MobileMultiSelect import MultiSelectValues
+from gitissue2todoist.components.MobileMultiSelect import SelectedValues
+
 from gitissue2todoist.owner.IRepositoryList import IRepositoryList
 from gitissue2todoist.owner.IRepositoryList import RepositoryDeselectedCb
 from gitissue2todoist.owner.IRepositoryList import RepositorySelectedCb
@@ -13,30 +16,54 @@ from gitissue2todoist.owner.IRepositoryList import RepositorySelectedCb
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 
 
-class MobileRepositoryList(ScrollContainer, IRepositoryList):
+class MobileRepositoryList(MobileMultiSelect, IRepositoryList):
 
     def __init__(self, pubSubEngine: IPubSubEngine, repositorySelectedCb: RepositorySelectedCb, repositoryDeselectedCb: RepositoryDeselectedCb):
+        """
+
+        Args:
+            pubSubEngine:
+            repositorySelectedCb:
+            repositoryDeselectedCb:
+        """
 
         self.logger: Logger = getLogger(__name__)
 
-        super().__init__(style=Pack(flex=1))
+        super().__init__(itemSelectCallback=repositorySelectedCb, itemDeselectCallback=repositoryDeselectedCb)
 
-        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine, repositorySelectedCb=repositorySelectedCb, repositoryDeselectedCb=repositoryDeselectedCb)
+        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
 
     @property
     def selectedRepositories(self) -> Slugs:
         """
+        TODO: Need to implement this for the switches
+
         Returns: A list of selected repositories
         """
-        repositories: Slugs = Slugs([])
 
+        selectedValues: SelectedValues = self.selectedValues
+        #
+        #  LEARN THIS IDIOM !!!
+        # repositories: Slugs = Slugs([])
+        # for val in selectedValues:
+        #     repositories.append(Slug(val))
+        #
+        # I am so Pythonic, I can puke
+        repositories: Slugs = Slugs([Slug(val) for val in selectedValues])
         return repositories
 
-    def setValues(self, slugs: Slugs) -> None:
-        pass
+    def setRepositories(self, slugs: Slugs) -> None:
+        multiSelectValues: MultiSelectValues= MultiSelectValues([])
+
+        for s in slugs:
+            slug: Slug = s
+            multiSelectValues.append(slug)
+
+        self.setValues(values=multiSelectValues)
 
     def deSelectAll(self):
-        pass
+        """
+        TODO:
 
-    def selectAll(self):
+        """
         pass

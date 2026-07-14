@@ -14,12 +14,9 @@ RepositoryDeselectedCb = Callable[[bool], None]
 
 class IRepositoryList(ABC):
 
-    def __init__(self, pubSubEngine: IPubSubEngine, repositorySelectedCb: RepositorySelectedCb, repositoryDeselectedCb: RepositoryDeselectedCb):
+    def __init__(self, pubSubEngine: IPubSubEngine):
 
         self._pubSubEngine:           IPubSubEngine          = pubSubEngine
-        self._repositorySelectedCb:   RepositorySelectedCb   = repositorySelectedCb
-        self._repositoryDeselectedCb: RepositoryDeselectedCb = repositoryDeselectedCb
-
         self._preferences:  Preferences   = Preferences()
 
     @property
@@ -31,7 +28,7 @@ class IRepositoryList(ABC):
         pass
 
     @abstractmethod
-    def setValues(self, slugs: Slugs) -> None:
+    def setRepositories(self, slugs: Slugs) -> None:
         """
         Clears existing elements and replaces them with a new set of issues
         """

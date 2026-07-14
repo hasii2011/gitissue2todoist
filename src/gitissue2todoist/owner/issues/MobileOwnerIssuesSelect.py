@@ -17,10 +17,10 @@ from toga.style import Pack
 from toga.style.pack import ROW
 from toga.style.pack import COLUMN
 
-from gitissue2todoist.owner.IOwnerIssuesSelect import IOwnerIssuesSelect
-from gitissue2todoist.owner.IOwnerIssuesSelect import ItemDeselectCallback
-from gitissue2todoist.owner.IOwnerIssuesSelect import ItemSelectCallback
-from gitissue2todoist.owner.IOwnerIssuesSelect import SelectedIssues
+from gitissue2todoist.owner.issues.IOwnerIssuesSelect import IOwnerIssuesSelect
+from gitissue2todoist.owner.issues.IOwnerIssuesSelect import ItemDeselectCallback
+from gitissue2todoist.owner.issues.IOwnerIssuesSelect import ItemSelectCallback
+from gitissue2todoist.owner.issues.IOwnerIssuesSelect import SelectedIssues
 
 from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 

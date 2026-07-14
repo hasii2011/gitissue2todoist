@@ -4,9 +4,13 @@ from logging import getLogger
 from typing import Dict
 from typing import List
 from typing import NewType
+from typing import cast
 
 from toga import Table
+
 from toga.style import Pack
+
+from toga.sources import Row
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slug
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import Slugs
@@ -25,6 +29,8 @@ IssueKey    = NewType('IssueKey', str)
 REPO_SLUG_KEY:  IssueKey = IssueKey('repository')
 # ISSUE_TITLE_KEY: IssueKey = IssueKey('issueTitle')
 
+SelectedRepositories = Slugs
+
 class RepositoryList(Table, IRepositoryList):
 
     def __init__(self, pubSubEngine: IPubSubEngine, repositorySelectedCb: RepositorySelectedCb, repositoryDeselectedCb: RepositoryDeselectedCb):
@@ -37,18 +43,39 @@ class RepositoryList(Table, IRepositoryList):
             on_select=self._onRepositorySelected
         )
         self.logger: Logger = getLogger(__name__)
-        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine, repositorySelectedCb=repositorySelectedCb, repositoryDeselectedCb=repositoryDeselectedCb)
+
+        IRepositoryList.__init__(self, pubSubEngine=pubSubEngine)
+
+        self._repositorySelectedCb:   RepositorySelectedCb   = repositorySelectedCb
+        self._repositoryDeselectedCb: RepositoryDeselectedCb = repositoryDeselectedCb
+
 
     @property
     def selectedRepositories(self) -> Slugs:
         """
         Returns: A list of selected repositories
         """
-        repositories: Slugs = Slugs([])
 
-        return repositories
+        selectedRepositories: SelectedRepositories = SelectedRepositories([])
 
-    def setValues(self, slugs: Slugs) -> None:
+        # Cast explicitly informs type checkers that multiple_select=True returns a List[Row]
+        selectedRows: List[Row] = cast(List[Row], self.selection)
+
+        if selectedRows:
+            for row in selectedRows:
+                togaRow: Row = row
+                # Use getattr to bypass static type checker warnings for dynamic Row attributes
+                repoSlug: Slug = getattr(togaRow, REPOSITORY_TITLE_KEY)
+
+                self.logger.debug(f'Currently selected: {repoSlug}')
+                selectedRepositories.append(repoSlug)
+        else:
+            self.logger.warning('Nothing selected.')
+
+        return selectedRepositories
+
+
+    def setRepositories(self, slugs: Slugs) -> None:
 
         if slugs is not None:
 
