@@ -7,6 +7,7 @@ from logging import getLogger
 from asyncio import AbstractEventLoop
 
 from dataclasses import dataclass
+from dataclasses import field
 
 from gitissue2todoist.AppCommon import AppCommon
 from gitissue2todoist.UICommon import UICommon
@@ -24,11 +25,19 @@ from gitissue2todoist.general.exceptions.AdapterAuthenticationError import Adapt
 from gitissue2todoist.preferences.Preferences import Preferences
 from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 
+def abbreviatedGitIssuesFactory() -> AbbreviatedGitIssues:
+    """
+    Factory method to create  the AbbreviatedGitIssues data structure;
+
+    Returns:  A new data structure
+    """
+    return AbbreviatedGitIssues([])
+
 
 @dataclass
 class RetrievalResult:
     shouldRetry:     bool
-    retrievedIssues: AbbreviatedGitIssues | None
+    retrievedIssues: AbbreviatedGitIssues = field(default_factory=abbreviatedGitIssuesFactory)
 
 
 class AsyncIssueRetriever:
@@ -42,7 +51,7 @@ class AsyncIssueRetriever:
         self._preferences:  Preferences = Preferences()
         self._progressDlg               = None
 
-    async def retrieveIssues(self, repositories: Slugs) -> AbbreviatedGitIssues | None:
+    async def retrieveIssues(self, repositories: Slugs) -> AbbreviatedGitIssues:
         """
         Assumes that the input repository names are the ones associated with the GitHub
         username in the preferences
@@ -56,8 +65,8 @@ class AsyncIssueRetriever:
         
         from asyncio import get_running_loop
 
-        finalIssues: AbbreviatedGitIssues | None = None
-        loop:        AbstractEventLoop           = get_running_loop()   # Grab the UI Loop
+        finalIssues: AbbreviatedGitIssues = abbreviatedGitIssuesFactory()
+        loop:        AbstractEventLoop    = get_running_loop()   # Grab the UI Loop
         #
         #  This is the retry loop
         #
@@ -132,16 +141,16 @@ class AsyncIssueRetriever:
 
             if okPressed:
                 SecureTokenManager().gitHubToken = authDialog.apiToken
-                return RetrievalResult(shouldRetry=True, retrievedIssues=None)
+                return RetrievalResult(shouldRetry=True, retrievedIssues=abbreviatedGitIssuesFactory())
             else:
-                return RetrievalResult(shouldRetry=False, retrievedIssues=None)
+                return RetrievalResult(shouldRetry=False, retrievedIssues=abbreviatedGitIssuesFactory())
 
         except Exception as generalError:
             if self._progressDlg:
                 self._progressDlg.destroy()
                 
             self.logger.error(f'General Error during retrieval: {generalError}')
-            return RetrievalResult(shouldRetry=False, retrievedIssues=None)
+            return RetrievalResult(shouldRetry=False, retrievedIssues=abbreviatedGitIssuesFactory())
 
     def _progressStatusCallback(self, loop: AbstractEventLoop, intermediateStatus: IntermediateStatus) -> None:
         """

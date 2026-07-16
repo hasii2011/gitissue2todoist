@@ -25,6 +25,8 @@ from gitissue2todoist.general.GitHubURLOption import GitHubURLOption
 from gitissue2todoist.general.ResourceManager import ResourceManager
 from gitissue2todoist.strategy.TodoistTaskCreationStrategy import TodoistTaskCreationStrategy
 
+UNSPECIFIED_GITHUB_USERNAME: str = 'Put Your GitHub User Name Here'
+
 DEFAULT_APP_WIDTH:    int        = 1024
 DEFAULT_APP_HEIGHT:   int        = 768
 DEFAULT_MAX_REPOS:    str        = '100'
@@ -48,7 +50,7 @@ SECTION_MAIN: ValueDescriptions = ValueDescriptions(
 
 SECTION_GITHUB: ValueDescriptions = ValueDescriptions(
     {
-        KeyName('gitHubUserName'):     ValueDescription(defaultValue='Put Your GitHub User Name Here'),
+        KeyName('gitHubUserName'):     ValueDescription(defaultValue=UNSPECIFIED_GITHUB_USERNAME),
         KeyName('maxReposToRetrieve'): ValueDescription(defaultValue=DEFAULT_MAX_REPOS, deserializer=SecureConversions.secureInteger),
         KeyName('gitHubURLOption'):    ValueDescription(defaultValue=GitHubURLOption.HyperLinkedTaskName.value, deserializer=GitHubURLOption, enumUseValue=True),
     }

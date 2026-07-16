@@ -3,6 +3,7 @@ from typing import Callable
 
 class AppCommon:
 
+    APP_NAME:     str = 'GitIssueTodoist'
     PLATFORM_IOS: str = 'ios'
     PLATFORM_MAC: str = 'darwin'
 

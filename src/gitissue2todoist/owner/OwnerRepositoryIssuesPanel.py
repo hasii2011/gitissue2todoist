@@ -105,11 +105,13 @@ class OwnerRepositoryIssuesPanel(Box):
         async def retrieveIssuesAndSetSelector() -> None:
             
             retriever: AsyncIssueRetriever = AsyncIssueRetriever()
-            retrievedIssues: AbbreviatedGitIssues | None = await retriever.retrieveIssues(repositories)
+            retrievedIssues: AbbreviatedGitIssues = await retriever.retrieveIssues(repositories)
             
-            if retrievedIssues is not None:
+            if retrievedIssues:
                 self._retrievedIssues = retrievedIssues
                 self._multiRepositorySelect.setValues(retrievedIssues)
+            else:
+                UICommon.asyncDisplayInfoDialog(widget=self, title='Warning', message='Selected repositories have no issues')
 
         create_task(retrieveIssuesAndSetSelector())
         self._selectAllButton.enabled = True

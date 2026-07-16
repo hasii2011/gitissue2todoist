@@ -2,14 +2,20 @@
 from typing import Tuple
 from typing import Callable
 
+from asyncio import Task
+from asyncio import create_task
+
 from sys import platform as sysPlatform
 
 from toga import Box
 from toga import Button
+from toga import InfoDialog
 from toga import Label
 from toga import Selection
 
 from toga import Position as TogaPosition
+from toga import Widget
+from toga import Window
 
 from toga.style import Pack
 from toga.style.pack import ROW
@@ -158,3 +164,23 @@ class UICommon:
 
         return authDialog
 
+    @classmethod
+    def asyncDisplayInfoDialog(cls, widget: Widget, title: str, message: str):
+        """
+        Displays an async dialog
+
+        Args:
+            widget:
+            title:
+            message:
+
+        """
+
+        dlg: InfoDialog = InfoDialog(title=title, message=message)
+
+        _w: Window | None = widget.window
+        assert _w is not None, 'I know what I am doing'
+        #
+        # _w.dialog(dialog=dlg)
+        # Schedule the coroutine to run without blocking the current thread
+        dialogTask: Task = create_task(_w.dialog(dialog=dlg))

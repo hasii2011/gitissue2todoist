@@ -8,14 +8,18 @@ from logging import getLogger
 
 from sys import platform as sysPlatform
 
+from os import linesep as osLineSep
+
 from toga import Box
+from toga import Window
 from toga import Label
 from toga import Switch
+from toga import Widget
 from toga import TextInput
 from toga import Selection
 from toga import OptionItem
+from toga import InfoDialog
 from toga import OptionContainer
-from toga import Widget
 
 from toga.style import Pack
 from toga.style.pack import COLUMN
@@ -38,6 +42,8 @@ URL_OPTION_MARGIN_BOTTOM: int = 15
 TOKEN_ROW_MARGIN_BOTTOM: int = 10
 TOKEN_LABEL_WIDTH:       int = 150
 TOKEN_INPUT_WIDTH:       int = 250
+
+GITHUB_TAB_NAME: str = 'GitHub'
 
 
 class PreferencesTabbedPanel(OptionContainer):
@@ -69,6 +75,7 @@ class PreferencesTabbedPanel(OptionContainer):
         self._githubToken:          TextInput
         self._githubUrlOption:      Selection
         self._githubUserName:       TextInput
+        self._taskCreationStrategy: Selection
         self._todoistProjectName:   TextInput
         self._cacheCleanupSwitch:   Switch
 
@@ -78,9 +85,10 @@ class PreferencesTabbedPanel(OptionContainer):
         
         self.content.append(OptionItem('Tokens',  tokensBox))
         self.content.append(OptionItem('Todoist', todoistBox))
-        self.content.append(OptionItem('GitHub',  githubBox))
+        self.content.append(OptionItem(GITHUB_TAB_NAME,  githubBox))
 
         self._setDialogValues()
+        self._setWidgetHandlers()
 
     def savePreferences(self):
 
@@ -155,8 +163,6 @@ class PreferencesTabbedPanel(OptionContainer):
 
         container.add(projectNameBox)
 
-        self._taskCreationStrategy.on_change = self._onTaskCreationStrategyChanged
-
     def _buildGitHubTab(self, container: Box) -> None:
         """
         Builds the GitHub tab.
@@ -184,8 +190,6 @@ class PreferencesTabbedPanel(OptionContainer):
 
         container.add(wrapperBox)
         container.add(githubUserNameRow)
-
-        self._githubUrlOption.on_change = self._onGitHubUrlOptionChanged
 
     def _buildTextInputRow(self, textLabel: str) -> Tuple[Box, TextInput]:
         """
@@ -225,8 +229,32 @@ class PreferencesTabbedPanel(OptionContainer):
         self._githubUrlOption.value = preferences.gitHubURLOption.value
         self._githubUserName.value  = preferences.gitHubUserName
 
-    def _onTaskCreationStrategyChanged(self, selection: Selection):
+    def _setWidgetHandlers(self):
+
+        self._taskCreationStrategy.on_change = self._onTaskCreationStrategyChanged
+        self._githubUrlOption.on_change      = self._onGitHubUrlOptionChanged
+
+
+    async def _onTaskCreationStrategyChanged(self, selection: Selection):
+
         UICommon.popDownPicker(selection=selection)
+
+        taskCreationStrategy: TodoistTaskCreationStrategy = TodoistTaskCreationStrategy(cast(str, self._taskCreationStrategy.value))
+
+        msg: str = 'You must restart GitIssue2Todoist for this to take effect.'
+        if taskCreationStrategy == TodoistTaskCreationStrategy.ALL_ISSUES_ASSIGNED_TO_USER:
+            msg = f'{msg}{osLineSep}For this option ensure you have a valid GitHub user name.'
+            self.current_tab = GITHUB_TAB_NAME
+
+        dlg: InfoDialog = InfoDialog(
+            title='Warning',
+            message=msg
+        )
+
+        _w: Window | None = selection.window
+        assert _w is not None, 'I know what I am doing'
+
+        await _w.dialog(dialog=dlg)
 
     def _onGitHubUrlOptionChanged(self, selection: Selection):
         UICommon.popDownPicker(selection=selection)

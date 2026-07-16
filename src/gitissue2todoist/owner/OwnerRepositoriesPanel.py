@@ -192,17 +192,10 @@ class OwnerRepositoriesPanel(Box):
         """
         selectedRepositories: SelectedRepositories = self._repositoryList.selectedRepositories
 
-        if len(selectedRepositories) == 0:
-
-            dlg: InfoDialog = InfoDialog(title='Warning', message='Selected repositories have no issues')
-            _w: Window | None = self.window
-            assert _w is not None, 'I know what I am doing'
-            # _w.dialog(dialog=dlg)
-            # Schedule the coroutine to run without blocking the current thread
-            dialogTask: Task = create_task(_w.dialog(dialog=dlg))
-
-        else:
+        if selectedRepositories:
             self._pubSubEngine.sendMessage(MessageType.RETRIEVE_OWNER_ISSUES, repositories=selectedRepositories)
+        else:
+            UICommon.asyncDisplayInfoDialog(widget=self, title='Warning', message='No repositories selected.')
 
     async def _handleGeneralError(self, error: Exception):
         """
