@@ -10,13 +10,10 @@ from logging import getLogger
 
 from sys import platform as sysPlatform
 
-from asyncio import Task
-from asyncio import create_task
-
 from toga import Box
 from toga import Button
 from toga import ErrorDialog
-from toga import InfoDialog
+
 from toga import Label
 from toga import Window
 
@@ -54,6 +51,7 @@ REPOSITORY_TITLE_KEY: str = 'repository'
 RepositoryDataRow = NewType('RepositoryDataRow', Dict[str, Union[str, Slug]])
 RepositoryData    = NewType('RepositoryData', List[RepositoryDataRow])
 
+INTER_BUTTON_GAP: int = 15
 
 class OwnerRepositoriesPanel(Box):
 
@@ -153,7 +151,7 @@ class OwnerRepositoriesPanel(Box):
         Returns:  The container for appropriate display in parent
         """
 
-        selectAllButton: Button = Button('Select All',      on_press=self._onSelectAll)
+        selectAllButton: Button = Button('Select All',      on_press=self._onSelectAll, style=Pack(margin_right=INTER_BUTTON_GAP))
         retrieveButton:  Button = Button('Retrieve Issues', on_press=self._onRetrieve, style=Pack(margin_right=10))
 
         retrieveButton.enabled = False
