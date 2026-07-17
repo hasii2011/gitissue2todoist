@@ -83,6 +83,15 @@ class GitIssue2Todoist(App):
             mainContainer:   Box = Box(style=Pack(direction=ROW, flex=1, margin_left=5, gap=10))
 
 
+            # Only render this button on mobile platforms where menus don't exist
+            if sysPlatform == AppCommon.PLATFORM_IOS:
+                settingsButton: Button = Button(
+                    '⚙️ Settings',
+                    on_press=self._actionPreferences,
+                    style=Pack(margin=5)
+                )
+                mainContainer.add(settingsButton)
+
             if self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.SINGLE_TODOIST_PROJECT or \
                     self._preferences.taskCreationStrategy == TodoistTaskCreationStrategy.PROJECT_BY_REPOSITORY:
 
@@ -107,15 +116,6 @@ class GitIssue2Todoist(App):
                 assert False, 'Not yet implemented'
 
             self._todoistPanel = TodoistPanel(pubSubEngine=self._pubSubEngine)
-
-            # Only render this button on mobile platforms where menus don't exist
-            if sysPlatform == AppCommon.PLATFORM_IOS:
-                settingsButton = Button(
-                    '⚙️ Settings',
-                    on_press=self._actionPreferences,
-                    style=Pack(margin=5)
-                )
-                mainContainer.add(settingsButton)
 
             mainContainer.add(self._todoistPanel)
 

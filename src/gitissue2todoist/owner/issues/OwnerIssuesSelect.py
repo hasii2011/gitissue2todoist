@@ -38,7 +38,7 @@ class OwnerIssuesSelect(Table, IOwnerIssuesSelect):
 
         super().__init__(
             columns=['issueSlug', 'issueTitle'],
-            accessors=[ISSUE_SLUG_KEY, ISSUE_TITLE_KEY],
+            # accessors=[ISSUE_SLUG_KEY, ISSUE_TITLE_KEY],
             multiple_select=True,
             show_headings=True,
             style=Pack(flex=1),

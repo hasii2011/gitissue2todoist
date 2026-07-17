@@ -188,6 +188,10 @@ class PreferencesTabbedPanel(OptionContainer):
         githubUserNameRow: Box
         githubUserNameRow, self._githubUserName   = self._buildTextInputRow('GitHub User Name')
 
+        # Tell iOS to stop auto-capitalizing the GitHub username
+        if sysPlatform == AppCommon.PLATFORM_IOS:
+            UICommon.fixIOSAutoCapitalize(textInput=self._githubUserName)
+
         container.add(wrapperBox)
         container.add(githubUserNameRow)
 

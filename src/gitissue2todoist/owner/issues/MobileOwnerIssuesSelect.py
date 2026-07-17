@@ -110,6 +110,7 @@ class MobileOwnerIssuesSelect(ScrollContainer, IOwnerIssuesSelect):
             # Switch with the issue title
             selectionSwitch: Switch = Switch(
                 text=displayTitle,
+                style=Pack(flex=1),             # stretch and perfectly align to the right edge
                 on_change=self._switchChangedHandler
             )
 

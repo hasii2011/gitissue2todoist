@@ -13,9 +13,10 @@ from toga import InfoDialog
 from toga import Label
 from toga import Selection
 
-from toga import Position as TogaPosition
 from toga import Widget
 from toga import Window
+from toga import TextInput
+from toga import Position as TogaPosition
 
 from toga.style import Pack
 from toga.style.pack import ROW
@@ -24,6 +25,10 @@ from codeallybasic.Position import Position
 
 from gitissue2todoist.dialogs.IAuthenticationDialog import IAuthenticationDialog
 from gitissue2todoist.dialogs.IProgressDialog import IProgressDialog
+
+UI_TEXT_AUTO_CAPITALIZATION_TYPE_NONE: int = 0
+UI_TEXT_AUTO_CORRECTION_TYPE_NO: int = 1
+UI_TEXT_SPELL_CHECKING_TYPE_NO: int = 1
 
 
 class UICommon:
@@ -183,4 +188,34 @@ class UICommon:
         #
         # _w.dialog(dialog=dlg)
         # Schedule the coroutine to run without blocking the current thread
+        # noinspection PyUnusedLocal
         dialogTask: Task = create_task(_w.dialog(dialog=dlg))
+
+    @classmethod
+    def fixIOSAutoCapitalize(cls, textInput: TextInput):
+        """
+        Hacky fix.  You can tell because of all the PyCharm pragmas, I use
+
+        Args:
+            textInput:   The toga text input we want to fix
+
+        """
+        # noinspection PyPackageRequirements
+        from rubicon.objc import ObjCInstance
+        # noinspection PyPackageRequirements
+        from rubicon.objc import send_message
+        # noinspection PyPackageRequirements
+        from rubicon.objc import NSInteger
+
+        # noinspection PyProtectedMember
+        nativeTextField: ObjCInstance = textInput._impl.native
+
+        # 0 == UITextAutocapitalizationTypeNone
+        send_message(nativeTextField, 'setAutocapitalizationType:', UI_TEXT_AUTO_CAPITALIZATION_TYPE_NONE, restype=None, argtypes=[NSInteger])
+
+        # 1 == UITextAutocorrectionTypeNo
+        send_message(nativeTextField, 'setAutocorrectionType:', UI_TEXT_AUTO_CORRECTION_TYPE_NO, restype=None, argtypes=[NSInteger])
+
+        # 1 == UITextSpellCheckingTypeNo
+        send_message(nativeTextField, 'setSpellCheckingType:', UI_TEXT_SPELL_CHECKING_TYPE_NO, restype=None, argtypes=[NSInteger])
+
