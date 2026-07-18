@@ -9,6 +9,7 @@ from typing import NewType
 from typing import cast
 
 from toga import Table
+from toga.sources import AccessorColumn
 from toga.style import Pack
 
 from gitissue2todoist.adapters.IAsyncHttpxGitHubAdapter import AbbreviatedGitIssue
@@ -37,8 +38,11 @@ class OwnerIssuesSelect(Table, IOwnerIssuesSelect):
         self.logger: Logger = getLogger(__name__)
 
         super().__init__(
-            columns=['issueSlug', 'issueTitle'],
-            # accessors=[ISSUE_SLUG_KEY, ISSUE_TITLE_KEY],
+            # columns=['issueSlug', 'issueTitle'],
+            columns=[
+                AccessorColumn(heading='issueSlug', accessor=ISSUE_SLUG_KEY),
+                AccessorColumn(heading='issueTitle', accessor=ISSUE_TITLE_KEY)
+            ],
             multiple_select=True,
             show_headings=True,
             style=Pack(flex=1),
@@ -83,7 +87,10 @@ class OwnerIssuesSelect(Table, IOwnerIssuesSelect):
                 issueTitle:   str                 = gitIssue.issueTitle
                 issueDataRow: IssueDataRow        = IssueDataRow({})
 
-                issueDataRow[ISSUE_SLUG_KEY] = issueSlug
+                # Strip off the username
+                userNameRepo: List[str] = issueSlug.split('/')
+
+                issueDataRow[ISSUE_SLUG_KEY]  = userNameRepo[1]
                 issueDataRow[ISSUE_TITLE_KEY] = issueTitle
 
                 issueDataRow[ISSUE_DATA_KEY] = gitIssue

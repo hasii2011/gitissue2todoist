@@ -4,7 +4,7 @@ dynamic = ["version"]
 # This project was generated with 0.4.2 using template: https://github.com/beeware/briefcase-template @ v0.4.2
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
@@ -28,7 +28,7 @@ sources = [
     "src/gitissue2todoist",
 ]
 
-icon = 'developer/gitissue2todoist'
+icon = 'developer/gitissue2todoist/appIcon'
 test_sources = [
     "tests",
 ]
