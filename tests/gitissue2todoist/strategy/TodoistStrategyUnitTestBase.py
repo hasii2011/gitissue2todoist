@@ -3,6 +3,7 @@ from typing import List
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgress
 
 from tests.ProjectTestBase import ProjectTestBase
 
@@ -23,9 +24,9 @@ class TodoistStrategyUnitTestBase(ProjectTestBase):
         self._cbInvoked:     bool = False
         self._cbInvokeCount: int = 0
 
-    def _sampleCallback(self, statusMsg: str):
+    def _sampleCallback(self, progress: TodoistProgress):
 
-        self.logger.warning(f'{statusMsg=}')
+        self.logger.warning(f'{progress.message=}')
 
         self._cbInvoked     = True
         self._cbInvokeCount += 1

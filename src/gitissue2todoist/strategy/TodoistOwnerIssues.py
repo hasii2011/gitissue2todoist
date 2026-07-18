@@ -1,5 +1,4 @@
 
-from typing import Callable
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -15,6 +14,7 @@ from todoist_api_python.models import Task
 
 from gitissue2todoist.strategy.AbstractTodoistStrategy import AbstractTodoistStrategy
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskId
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskName
@@ -40,22 +40,24 @@ class TodoistOwnerIssues(AbstractTodoistStrategy):
 
         self._repositoryTaskMap: TaskNameMap = cast(TaskNameMap, None)      # noqa
 
-    def createTasks(self, info: CloneInformation, progressCb: Callable):
+    def createTasks(self, info: CloneInformation, progressCb: TodoistProgressCB):
 
         self._infoLogCloneInformation(info=info, progressCb=progressCb)
 
-        progressCb('Starting')
+        self._completedTasks = 0
+        self._totalTasks     = len(info.tasksToClone)
+        self._reportProgress(progressCb, 'Starting')
 
         projectId: str = self._determineTopLevelProjectId(info, progressCb)
 
         self._createProjectTasksInTopLevelProject(info=info, progressCb=progressCb, projectId=projectId)
 
-    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: Callable) -> str:
+    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: TodoistProgressCB) -> str:
 
         projectId: str = self._getProjectIdOfSingleProjectName(progressCb=progressCb)
         return projectId
 
-    def _createProjectTasksInTopLevelProject(self, info, progressCb: Callable, projectId: str):
+    def _createProjectTasksInTopLevelProject(self, info: CloneInformation, progressCb: TodoistProgressCB, projectId: str):
         """
 
         Args:
@@ -83,11 +85,11 @@ class TodoistOwnerIssues(AbstractTodoistStrategy):
             #
             if justRepoName in self._repositoryTaskMap.keys():
                 repoId: str = self._repositoryTaskMap[TaskName(justRepoName)]
-                progressCb(f'Found existing repository task: {justRepoName}')
+                self._reportProgress(progressCb, f'Found existing repository task: {justRepoName}')
                 repoTask: Task = todoist.get_task(task_id=repoId)
             else:
                 repoTask = todoist.add_task(project_id=projectId, content=justRepoName, description='Repository task created by GitIssue2Todoist')
-                progressCb(f'Created new repository task: {justRepoName}')
+                self._reportProgress(progressCb, f'Created new repository task: {justRepoName}')
                 #
                 # Since we created a new repository task put it in the name map
                 #

@@ -2,7 +2,6 @@
 from typing import Iterator
 from typing import cast
 from typing import List
-from typing import Callable
 
 from logging import Logger
 from logging import getLogger
@@ -14,6 +13,7 @@ from gitissue2todoist.strategy.AbstractTodoistStrategy import Tasks
 from gitissue2todoist.strategy.AbstractTodoistStrategy import AbstractTodoistStrategy
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfo
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskNameMap
 
@@ -32,7 +32,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
         super().__init__()
         self.logger: Logger = getLogger(__name__)
 
-    def createTasks(self, info: CloneInformation, progressCb: Callable):
+    def createTasks(self, info: CloneInformation, progressCb: TodoistProgressCB):
         """
         Abstract method;  Subclass must implement
         Args:
@@ -44,7 +44,9 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
         assert info.repositoryTask is not None, 'Developer Error: The repository task must be set prior to cloning.'
         assert info.milestoneNameTask is not None, 'Developer Error: The milestone name task must be set prior to cloning.'
 
-        progressCb('Starting')
+        self._completedTasks = 0
+        self._totalTasks     = len(info.tasksToClone)
+        self._reportProgress(progressCb, 'Starting')
 
         projectId: str = self._determineTopLevelProjectId(info, progressCb)
 
@@ -52,7 +54,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
 
         self._synchronize(progressCb=progressCb)
 
-    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: Callable) -> str:
+    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: TodoistProgressCB) -> str:
         """
         Implement abstract method from parent;
         Gets a project ID for the user specified project
@@ -89,7 +91,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
         for taskInfo in tasks:
             self._createTaskItem(taskInfo=taskInfo, projectId=projectId, parentTaskItem=milestoneTaskItem, progressCb=progressCb)
 
-    def _createMileStoneTaskUnderRepoTask(self, projectId: str, repoTaskId: str, milestoneName: str, progressCb: Callable) -> Task:
+    def _createMileStoneTaskUnderRepoTask(self, projectId: str, repoTaskId: str, milestoneName: str, progressCb: TodoistProgressCB) -> Task:
         """
 
         Args:
@@ -100,7 +102,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
 
         Returns:  Either an existing milestone task or a newly created one
         """
-        progressCb(f'Retrieving milestone task: {milestoneName}')
+        self._reportProgress(progressCb, f'Retrieving milestone task: {milestoneName}')
         todoist: TodoistAPI = self._todoist
 
         taskIterator: Iterator = self._todoist.get_tasks(project_id=projectId)
@@ -112,7 +114,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
         if milestoneName in itemNames:
             singleItemList: List = [x for x in taskList if x.content == milestoneName]
             msg: str = f'Using existing milestone: {milestoneName}'
-            progressCb(msg)
+            self._reportProgress(progressCb, msg)
             milestoneTask: Task = singleItemList[0]
             self.logger.info(msg)
         else:
@@ -122,7 +124,7 @@ class TodoistCreateSingleProject(AbstractTodoistStrategy):
                                              content=milestoneName,
                                              description=debugDescription)
             msg = f'Added milestone: {milestoneName}'
-            progressCb(msg)
+            self._reportProgress(progressCb, msg)
             self.logger.info(msg)
 
         return milestoneTask

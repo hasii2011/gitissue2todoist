@@ -36,6 +36,7 @@ from gitissue2todoist.pubsubengine.IPubSubEngine import IPubSubEngine
 from gitissue2todoist.strategy.TodoistCreation import TodoistCreation
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgress
 
 DONT_JAM_ME_MARGIN: int = 20
 
@@ -136,10 +137,15 @@ class TodoistPanel(Box):
             self._todoistCreation = TodoistCreation()
             self._progressDlg     = UICommon.setupProgressDialog(title='Creating Todoist Tasks...', maxProgressValue=len(ci.tasksToClone))
 
-            def _threadSafeCallback(msg: str):
-                self.logger.info(f'{msg}')
-                loop.call_soon_threadsafe(self._progressDlg.updateMessage, msg)
+            def _threadSafeCallback(progress: TodoistProgress):
+                self.logger.info(f'{progress.message}')
 
+                # Group both UI updates together safely
+                def update_ui():
+                    self._progressDlg.updateMessage(progress.message)
+                    self._progressDlg.updateProgress = progress.completedTasks
+
+                loop.call_soon_threadsafe(update_ui)
             try:
                 # Execute task creation in a background thread; We don't need a frozen UI
                 await to_thread(self._todoistCreation.createTasks, info=ci, progressCb=_threadSafeCallback)

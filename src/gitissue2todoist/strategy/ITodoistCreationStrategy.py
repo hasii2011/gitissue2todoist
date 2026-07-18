@@ -5,6 +5,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 
 
 class ITodoistCreationStrategy(ABC):
@@ -17,7 +18,7 @@ class ITodoistCreationStrategy(ABC):
         pass
 
     @abstractmethod
-    def createTasks(self, info: CloneInformation, progressCb: Callable):
+    def createTasks(self, info: CloneInformation, progressCb: TodoistProgressCB):
         """
         Abstract method;  Subclass must implement
         Args:
@@ -27,7 +28,7 @@ class ITodoistCreationStrategy(ABC):
         pass
 
     @abstractmethod
-    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: Callable) -> str:
+    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: TodoistProgressCB) -> str:
         """
         Either gets a project ID from the repo name or one for the user specified project
 

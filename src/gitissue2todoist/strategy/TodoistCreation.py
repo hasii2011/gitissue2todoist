@@ -8,6 +8,7 @@ from httpx import HTTPStatusError
 from gitissue2todoist.general.exceptions.AdapterAuthenticationError import AdapterAuthenticationError
 from gitissue2todoist.strategy.TodoistOwnerIssues import TodoistOwnerIssues
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 from gitissue2todoist.strategy.ITodoistCreationStrategy import ITodoistCreationStrategy
 from gitissue2todoist.strategy.TodoistCreateByRepository import TodoistCreateByRepository
 from gitissue2todoist.strategy.TodoistCreateSingleProject import TodoistCreateSingleProject
@@ -35,7 +36,7 @@ class TodoistCreation:
         else:
             assert False, 'Unknown task creation strategy'
 
-    def createTasks(self, info: CloneInformation, progressCb: Callable):
+    def createTasks(self, info: CloneInformation, progressCb: TodoistProgressCB):
         try:
             self._taskCreationStrategy.createTasks(info=info, progressCb=progressCb)
         except HTTPStatusError as e:

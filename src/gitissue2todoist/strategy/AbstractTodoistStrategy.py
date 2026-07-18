@@ -1,6 +1,5 @@
 
 from typing import cast
-from typing import Callable
 from typing import Iterator
 
 from abc import ABCMeta
@@ -26,6 +25,8 @@ from gitissue2todoist.preferences.SecureTokenManager import SecureTokenManager
 from gitissue2todoist.AppCommon import AppCommon
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgress
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import Tasks
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskId
@@ -65,7 +66,10 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
         self._devTasks:          Tasks             = []
         self._projectDictionary: ProjectDictionary = {}
 
-    def _createTaskItem(self, taskInfo: TaskInfo, projectId: str, parentTaskItem: Task, progressCb: Callable):
+        self._completedTasks: int = 0
+        self._totalTasks:     int = 0
+
+    def _createTaskItem(self, taskInfo: TaskInfo, projectId: str, parentTaskItem: Task, progressCb: TodoistProgressCB):
         """
         Create a new task if it does not already exist in Todoist
         Assumes self._devTasks has all the project's tasks
@@ -120,7 +124,8 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
                                      content=linkedTaskName)
                 case _:
                     self.clsLogger.error(f'Unknown URL option: {option}')       # noqa
-            progressCb(f'Created task: {taskInfo.gitIssueName}')
+
+            self._reportProgress(progressCb, f'Created task: {taskInfo.gitIssueName}', incCompletedTskCnt=True)
 
     def _addNoteToTask(self, itemId: str, noteContent: str) -> Comment:
         """
@@ -148,7 +153,7 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
 
         return newComment
 
-    def _getProjectIdOfSingleProjectName(self, progressCb: Callable):
+    def _getProjectIdOfSingleProjectName(self, progressCb: TodoistProgressCB):
         """
         Some Todoist strategies place all the subtasks in a single project.  This common method
         returns the ID of that preferred project.
@@ -157,7 +162,7 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
             progressCb:  The progress reporting callback
 
         """
-        progressCb(f'Using single project: {self._preferences.todoistProjectName}')
+        self._reportProgress(progressCb, f'Using single project: {self._preferences.todoistProjectName}')
 
         self._projectDictionary = self._getCurrentProjects()
 
@@ -241,9 +246,9 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
 
     def _synchronize(self, progressCb):
         # TODO: This method is unneeded
-        progressCb('Done')
+        self._reportProgress(progressCb, 'Done')
 
-    def _infoLogCloneInformation(self, info: CloneInformation, progressCb: Callable):
+    def _infoLogCloneInformation(self, info: CloneInformation, progressCb: TodoistProgressCB):
 
         if AbstractTodoistStrategy.clsLogger.isEnabledFor(INFO):
             AbstractTodoistStrategy.clsLogger.info(f'{progressCb.__name__}')
@@ -281,3 +286,25 @@ class AbstractTodoistStrategy(ITodoistCreationStrategy, metaclass=ABCMeta):
                 unpackedList.append(task)
 
         return unpackedList
+
+    def _reportProgress(self, progressCb: TodoistProgressCB, message: str, incCompletedTskCnt: bool = False):
+        """
+
+        Args:
+            progressCb:     Method to call
+            message:        Message to report
+            incCompletedTskCnt:  If `True` increment self._completedTasks and report that back
+            via the TodoistProgress structure
+
+        Returns:
+
+        """
+        if incCompletedTskCnt:
+            self._completedTasks += 1
+            
+        progressInfo: TodoistProgress = TodoistProgress(
+            message=message, 
+            completedTasks=self._completedTasks, 
+            totalTasks=self._totalTasks
+        )
+        progressCb(progressInfo)

@@ -1,4 +1,5 @@
 
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import NewType
@@ -40,3 +41,11 @@ def tasksFactory() -> Tasks:
 TaskName     = NewType('TaskName',     str)
 TaskId       = NewType('TaskId',       str)
 TaskNameMap  = NewType('TaskNameMap',  Dict[TaskName, TaskId])
+
+@dataclass
+class TodoistProgress:
+    message:        str
+    completedTasks: int
+    totalTasks:     int
+
+TodoistProgressCB = Callable[[TodoistProgress], None]

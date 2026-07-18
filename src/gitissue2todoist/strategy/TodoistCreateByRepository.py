@@ -1,7 +1,6 @@
 
 from typing import Iterator
 from typing import List
-from typing import Callable
 from typing import NewType
 from typing import Union
 from typing import cast
@@ -21,6 +20,7 @@ from todoist_api_python.models import Task
 from gitissue2todoist.strategy.AbstractTodoistStrategy import AbstractTodoistStrategy
 
 from gitissue2todoist.strategy.TodoistStrategyTypes import CloneInformation
+from gitissue2todoist.strategy.TodoistStrategyTypes import TodoistProgressCB
 from gitissue2todoist.strategy.TodoistStrategyTypes import ProjectName
 from gitissue2todoist.strategy.TodoistStrategyTypes import TaskInfoList
 from gitissue2todoist.strategy.TodoistStrategyTypes import Tasks
@@ -55,7 +55,7 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
 
         self.logger:             Logger            = getLogger(__name__)
 
-    def createTasks(self, info: CloneInformation, progressCb: Callable):
+    def createTasks(self, info: CloneInformation, progressCb: TodoistProgressCB):
         """
 
         Args:
@@ -64,7 +64,9 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
         """
         self.logger.debug(f'{progressCb.__name__} - {info=}')
 
-        progressCb('Starting')
+        self._completedTasks = 0
+        self._totalTasks     = len(info.tasksToClone)
+        self._reportProgress(progressCb, 'Starting')
 
         projectId:         str  = self._determineTopLevelProjectId(info, progressCb)
         milestoneTaskItem: Task = self._getMilestoneTaskItem(projectId=projectId, milestoneName=info.milestoneNameTask, progressCb=progressCb)
@@ -75,7 +77,7 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
 
         self._synchronize(progressCb)
 
-    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: Callable) -> str:
+    def _determineTopLevelProjectId(self, info: CloneInformation, progressCb: TodoistProgressCB) -> str:
         """
         Implement empty method from parent;
         Gets a project ID from the repo name
@@ -95,11 +97,11 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
 
         projectId:    str = self._getProjectId(projectName=ProjectName(justRepoName), projectDictionary=self._projectDictionary)
 
-        progressCb(f'Added {justRepoName}')
+        self._reportProgress(progressCb, f'Added {justRepoName}')
 
         return projectId
 
-    def _getMilestoneTaskItem(self, projectId: str, milestoneName: str, progressCb: Callable) -> Task:
+    def _getMilestoneTaskItem(self, projectId: str, milestoneName: str, progressCb: TodoistProgressCB) -> Task:
         """
         Has the side effect that it sets self._devTasks
 
@@ -120,14 +122,14 @@ class TodoistCreateByRepository(AbstractTodoistStrategy):
             self.logger.debug(f'MileStone Task: {task.content=}')
             if task.content == milestoneName:
                 milestoneTask = task
-                progressCb(f'Found existing milestone: {milestoneName}')
+                self._reportProgress(progressCb, f'Found existing milestone: {milestoneName}')
                 break
         # if none found create new one
         if milestoneTask is None:
             # milestoneTaskItem = todoist.items.add(milestoneNameTask, project_id=projectId)
             milestoneTask = todoist.add_task(project_id=projectId, content=milestoneName)
             msg: str = f'Added milestone: {milestoneTask}'
-            progressCb(msg)
+            self._reportProgress(progressCb, msg)
             self.logger.info(msg)
 
         return milestoneTask
