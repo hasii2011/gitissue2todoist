@@ -75,7 +75,7 @@ Once you press `Create Tasks` and it completes, the UI resets back to its initia
 
 The developer picks the `Todoist` strategy via the **GitIssue2Todoist→Settings** dialog as depicted below.
 
-![StrategyConfiguration](./images/WorkInProgress.png)
+![StrategyConfiguration](./developer/todoist/images/StrategyConfiguration.png)
 
 Changing strategies requires a `GitIssue2Todoist` restart.  It is not wise to mix strategies.
 
