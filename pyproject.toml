@@ -28,7 +28,7 @@ sources = [
     "src/gitissue2todoist",
 ]
 
-icon = 'developer/gitissue2todoist/appIcon'
+icon = 'developer/appIcon/gitissue2todoist'
 test_sources = [
     "tests",
 ]
