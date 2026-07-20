@@ -191,7 +191,7 @@ requires = [
 ]
 
 [tool.briefcase.app.gitissue2todoist.iOS.info]
-UIDeviceFamily = [2]
+
 UISupportedInterfaceOrientations = [
     "UIInterfaceOrientationLandscapeLeft",
     "UIInterfaceOrientationLandscapeRight"
