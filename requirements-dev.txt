@@ -3,7 +3,7 @@
 # dependencies installed in the local virtual environment to provide autocomplete and avoid "missing module" errors.
 
 #
-briefcase==0.4.2
+briefcase==0.4.4
 # Base GUI framework (this will automatically install toga-cocoa on Mac, toga-gtk on Linux, etc.)
 toga~=0.5.0
 
@@ -17,5 +17,5 @@ keyring>=24.0.0
 
 # Testing
 html-testRunner==1.2.1
-mypy==2.1.0
+mypy==2.3.0
 click==8.4.2
