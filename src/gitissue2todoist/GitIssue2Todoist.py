@@ -75,7 +75,10 @@ class GitIssue2Todoist(App):
         show the main window.
         """
 
-        self.main_window = MainWindow(title=self.formal_name)
+        self.main_window = MainWindow(
+            title=self.formal_name,
+            on_close=self._quitApp
+        )
         assert self.main_window is not None
         assert not isinstance(self.main_window, str)
 
@@ -141,6 +144,10 @@ class GitIssue2Todoist(App):
     def on_exit(self) -> bool:
         self.logger.info(f'*************************** GitIssue2Todist Ended ***************************')
         loggingShutdown()
+        return True
+
+    def _quitApp(self, window, **kwargs) -> bool:
+        self.exit()
         return True
 
     async def on_running(self):
