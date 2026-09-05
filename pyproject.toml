@@ -22,6 +22,7 @@ author_email = 'Humberto.A.Sanchez.II@gmail.com'
 [tool.briefcase.app.gitissue2todoist]
 formal_name = 'GitIssue2Todoist'
 description = 'Converts Git issues to Todoist tasks'
+build = '25'
 
 long_description = """More details about the app should go here."""
 sources = [

@@ -85,25 +85,25 @@ Changing strategies requires a `GitIssue2Todoist` restart.  It is not wise to mi
 
 In a web browser, navigate to the following [URL](https://todoist.com/).  Log into your account.  In the upper right-hand corner click on your username.  See the following figure.
 
-![1 - UserNamePullDown](./developer/todoist/images/1 - UserNamePullDown.png)
+![1 - UserNamePullDown](./developer/todoist/images/1-UserNamePullDown.png)
 
 
 Click on Settings. See the following figure:
 
-![Settings](./developer/todoist/images/2 - Click-On-Settings.png)
+![Settings](./developer/todoist/images/2-Click-On-Settings.png)
 
 
 Click on Integration.  See the following figure:
-![Integrations](./developer/todoist/images/3 - Click-On-Integrations.png)
+![Integrations](./developer/todoist/images/3-Click-On-Integrations.png)
 
 
 Select the Developer Tab.  See the following figure.
 
-![Developer Tab](./developer/todoist/images/4 - Select-Developer-Tab.png)
+![Developer Tab](./developer/todoist/images/4-Select-Developer-Tab.png)
 
 In this tab you will create a new API token.  I have already created one.  Copy the API token and use it when `GitIssue2Todoist` requests it.  See the following figure.
 
-![API Token](./developer/todoist/images/5 - API-Token.png)
+![API Token](./developer/todoist/images/5-API-Token.png)
 
 # IDE Setup
 
